@@ -11,11 +11,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -27,6 +29,7 @@ fun MeshTwoLineListItem(
     titleTextOverflow: TextOverflow = TextOverflow.Ellipsis,
     subtitle: String? = null,
     subtitleMaxLines: Int = 1,
+    subtitleTextColor: Color = LocalTextStyle.current.color,
     subtitleTextOverflow: TextOverflow = TextOverflow.Ellipsis
 ) {
     Row(
@@ -52,6 +55,7 @@ fun MeshTwoLineListItem(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = subtitleMaxLines,
+                    color = subtitleTextColor,
                     overflow = subtitleTextOverflow
                 )
             }
@@ -67,6 +71,7 @@ fun MeshTwoLineListItem(
     titleTextOverflow: TextOverflow = TextOverflow.Ellipsis,
     subtitle: String? = null,
     subtitleMaxLines: Int = 1,
+    subtitleTextColor: Color = LocalTextStyle.current.color,
     subtitleTextOverflow: TextOverflow = TextOverflow.Ellipsis,
     trailingComposable: @Composable () -> Unit = {},
 ) {
@@ -94,6 +99,7 @@ fun MeshTwoLineListItem(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = subtitleMaxLines,
+                    color = subtitleTextColor,
                     overflow = subtitleTextOverflow
                 )
             }
@@ -109,6 +115,7 @@ fun MeshTwoLineListItem(
     title: String,
     subtitle: String? = null,
     subtitleMaxLines: Int = 1,
+    subtitleTextColor: Color = LocalTextStyle.current.color,
     subtitleTextOverflow: TextOverflow = TextOverflow.Ellipsis,
     trailingComposable: @Composable () -> Unit = {},
 ) {
@@ -127,6 +134,7 @@ fun MeshTwoLineListItem(
         title = title,
         subtitle = subtitle,
         subtitleMaxLines = subtitleMaxLines,
+        subtitleTextColor = subtitleTextColor,
         subtitleTextOverflow = subtitleTextOverflow,
         trailingComposable = trailingComposable
     )

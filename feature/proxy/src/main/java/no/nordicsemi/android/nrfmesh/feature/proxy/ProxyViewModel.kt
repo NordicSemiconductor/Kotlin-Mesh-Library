@@ -47,15 +47,12 @@ internal class ProxyViewModel @Inject internal constructor(
     private fun observeNetwork() {
         repository.network.onEach { network ->
             meshNetwork = network
-            _uiState.update {
-                it.copy(meshNetworkState = MeshNetworkState.Success(network = network))
-            }
+            _uiState.update { it.copy(meshNetworkState = MeshNetworkState.Success(network = network)) }
         }.launchIn(scope = viewModelScope)
 
         repository.proxyConnectionStateFlow.onEach { proxyConnectionState ->
-            _uiState.update {
-                it.copy(proxyConnectionState = proxyConnectionState)
-            }
+            println("Proxy connection state: $proxyConnectionState")
+            _uiState.update { it.copy(proxyConnectionState = proxyConnectionState) }
         }.launchIn(scope = viewModelScope)
 
         // Setup initial state

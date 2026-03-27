@@ -101,7 +101,7 @@ class CannotDelete : AccessError()
 class Timeout : AccessError()
 
 /**
- * Thrown when sending the message was cancelled.
+ * Thrown when sending the message was canceled.
  */
 class Cancelled : AccessError()
 

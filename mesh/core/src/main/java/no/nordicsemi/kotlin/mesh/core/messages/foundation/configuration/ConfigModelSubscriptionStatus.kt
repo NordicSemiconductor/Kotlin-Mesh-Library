@@ -177,10 +177,38 @@ class ConfigModelSubscriptionStatus(
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString() = "ConfigModelSubscriptionStatus(status: $status, " +
-            "elementAddress: ${elementAddress.toHexString()}, " +
-            "address: ${address.toHexString(format = HexFormat.UpperCase)}, " +
-            "modelIdentifier: ${modelIdentifier.toHexString()}, " +
-            "companyIdentifier: ${companyIdentifier?.toHexString()})"
+            "elementAddress: ${
+                elementAddress.address.toHexString(
+                    format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase = true
+                    }
+                )
+            }, " +
+            "address: ${
+                address.toHexString(
+                    format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase = true
+                    }
+                )
+            }, " +
+            "modelIdentifier: ${
+                modelIdentifier.toHexString(
+                    format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase = true
+                    }
+                )
+            }, " +
+            "companyIdentifier: ${
+                companyIdentifier?.toHexString(
+                    format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase = true
+                    }
+                )
+            })"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x801Fu

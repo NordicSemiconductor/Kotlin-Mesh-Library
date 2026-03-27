@@ -63,9 +63,30 @@ class ConfigModelAppBind(
     )
 
     override fun toString() = "ConfigModelAppBind(applicationKeyIndex: $keyIndex, " +
-            "elementAddress: ${elementAddress.toHexString()}, " +
-            "modelIdentifier: $modelIdentifier), " +
-            "optional companyIdentifier: $companyIdentifier)"
+            "elementAddress: ${
+                elementAddress.address.toHexString(
+                    format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase = true
+                    }
+                )
+            }, " +
+            "modelIdentifier: ${
+                modelIdentifier.toHexString(
+                    format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase = true
+                    }
+                )
+            }), " +
+            "optional companyIdentifier: ${
+                companyIdentifier?.toHexString(
+                    format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase = true
+                    }
+                )
+            })"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x803Du

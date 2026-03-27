@@ -37,7 +37,7 @@ data class ProvisioningCapabilities(
     val outputOobSize: UByte,
     val outputOobActions: List<OutputOobActions>,
     val inputOobSize: UByte,
-    val inputOobActions: List<InputOobActions>
+    val inputOobActions: List<InputOobActions>,
 ) {
     constructor(data: ProvisioningPdu) : this(
         numberOfElements = data[1].toUByte().toInt(),
@@ -88,4 +88,12 @@ data class ProvisioningCapabilities(
             "Output OOB Actions: ${outputOobActions.ifEmpty { "None" }}\n" +
             "Input OOB Size: $inputOobSize\n" +
             "Input OOB Actions: ${inputOobActions.ifEmpty { "None" }}"
+
+    /**
+     * Checks if the device supports the given authentication method.
+     *
+     * @param authMethod The authentication method to check.
+     * @return `true` if the device supports the given authentication method, `false` otherwise.
+     */
+    fun supports(authMethod: AuthenticationMethod) = supportedAuthMethods.contains(authMethod)
 }

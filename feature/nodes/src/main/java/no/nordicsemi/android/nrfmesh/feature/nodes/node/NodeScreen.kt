@@ -4,16 +4,20 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Badge
 import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.DeviceHub
 import androidx.compose.material.icons.outlined.Download
@@ -23,6 +27,7 @@ import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Recycling
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.SafetyCheck
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Timer
@@ -34,17 +39,22 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboard
@@ -54,8 +64,12 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
+import no.nordicsemi.android.nrfmesh.core.common.KeyIdGenerator
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.copyToClipboard
+import no.nordicsemi.android.nrfmesh.core.data.configurator.MeshTask
+import no.nordicsemi.android.nrfmesh.core.data.configurator.TaskStatus
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
@@ -98,11 +112,18 @@ internal fun NodeScreen(
     save: () -> Unit,
     navigateBack: () -> Unit,
     removeNode: () -> Unit,
+    tasks: List<MeshTask>,
+    onReconfigCompletePressed: () -> Unit,
+    onCancelPressed: () -> Unit,
+    onRetryPressed: () -> Unit,
 ) {
-    val state = rememberPullToRefreshState()
+    val scope = rememberCoroutineScope()
+    val pullToRefreshState = rememberPullToRefreshState()
+    var showConfigurationTasks by rememberSaveable { mutableStateOf(tasks.isNotEmpty()) }
+    val reconfigBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     PullToRefreshBox(
         modifier = Modifier.fillMaxSize(),
-        state = state,
+        state = pullToRefreshState,
         onRefresh = onRefresh,
         isRefreshing = isRefreshing
     ) {
@@ -233,6 +254,71 @@ internal fun NodeScreen(
                     navigateBack = navigateBack,
                     removeNode = removeNode
                 )
+            }
+        }
+        if (showConfigurationTasks) {
+            ModalBottomSheet(
+                sheetState = reconfigBottomSheetState,
+                onDismissRequest = {
+                    showConfigurationTasks = !showConfigurationTasks
+                    onReconfigCompletePressed()
+                },
+                sheetGesturesEnabled = !tasks.any { it.status !is TaskStatus.Completed },
+                properties = ModalBottomSheetProperties(
+                    shouldDismissOnBackPress = false,
+                    shouldDismissOnClickOutside = false
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 16.dp)
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SectionTitle(
+                        modifier = Modifier
+                            .weight(weight = 1f)
+                            .padding(horizontal = 16.dp),
+                        title = stringResource(id = R.string.label_configuration)
+                    )
+                    MeshOutlinedButton(
+                        enabled = tasks.any { it.status is TaskStatus.Error },
+                        onClick = onRetryPressed,
+                        buttonIcon = Icons.Outlined.Refresh,
+                        text = stringResource(R.string.label_retry)
+                    )
+                    MeshOutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                reconfigBottomSheetState.hide()
+                            }.invokeOnCompletion {
+                                if (!reconfigBottomSheetState.isVisible) {
+                                    if (!tasks.any { it.status !is TaskStatus.Completed }) {
+                                        onReconfigCompletePressed()
+                                    } else {
+                                        onCancelPressed()
+                                    }
+                                    showConfigurationTasks = !showConfigurationTasks
+                                }
+                            }
+                        },
+                        buttonIcon = if (!tasks.any { it.status !is TaskStatus.Completed }) Icons.Outlined.AutoFixHigh else Icons.Outlined.Cancel,
+                        text = stringResource(if (!tasks.any { it.status !is TaskStatus.Completed }) R.string.label_done else R.string.label_cancel),
+                    )
+                }
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(space = 8.dp)) {
+                    items(items = tasks, key = { KeyIdGenerator.nextId() }) {
+                        ElevatedCardItem(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            imageVector = it.icon,
+                            title = it.label,
+                            subtitle = it.status.description(),
+                            subtitleTextColor = it.status.color()
+                        )
+                    }
+                }
             }
         }
     }
@@ -499,12 +585,12 @@ private fun DefaultTtlRow(
                         value = ttlInput,
                         onValueChanged = {
                             ttlInput = it
-                            if(it.text.isNotEmpty()){
+                            if (it.text.isNotEmpty()) {
                                 isError = false
                                 errorMessage = ""
                             }
                         },
-                        label = { Text(text = context.getString(R.string.label_default_ttl)) },
+                        label = { Text(text = stringResource(R.string.label_default_ttl)) },
                         keyboardOptions = KeyboardOptions(
                             autoCorrectEnabled = false,
                             keyboardType = KeyboardType.Number
@@ -673,4 +759,21 @@ private fun RemoveNode(
             }
         )
     }
+}
+
+@Composable
+fun TaskStatus.color() = when (this) {
+    is TaskStatus.Idle -> Color.Gray
+    is TaskStatus.InProgress -> Color.Blue
+    is TaskStatus.Skipped -> Color.Gray
+    is TaskStatus.Completed -> Color.Green
+    is TaskStatus.Error -> Color.Red
+}
+
+fun TaskStatus.description() = when (this) {
+    TaskStatus.Idle -> "Waiting..."
+    TaskStatus.InProgress -> "In progress"
+    TaskStatus.Skipped -> "Skipped"
+    TaskStatus.Completed -> "Success"
+    is TaskStatus.Error -> error
 }

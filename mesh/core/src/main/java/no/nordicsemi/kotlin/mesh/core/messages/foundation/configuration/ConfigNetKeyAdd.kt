@@ -20,7 +20,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
  * @property responseOpCode       Op Code of the response message.
  * @constructor Constructs the ConfigNetKeyDelete message.
  */
-data class ConfigNetKeyAdd(
+class ConfigNetKeyAdd(
     override val index: KeyIndex,
     val key: ByteArray,
 ) : AcknowledgedConfigMessage, ConfigNetKeyMessage {
@@ -39,16 +39,8 @@ data class ConfigNetKeyAdd(
         require(key.size == 16) { throw InvalidKeyLength() }
     }
 
-    companion object Initializer : ConfigMessageInitializer {
-        override val opCode = 0x8040u
-
-        override fun init(parameters: ByteArray?) = parameters?.takeIf {
-            it.size == 18
-        }?.let {
-            val netKeyIndex = decodeNetKeyIndex(data = it, offset = 0)
-            val key = it.copyOfRange(2, 18)
-            ConfigNetKeyAdd(index = netKeyIndex, key = key)
-        }
+    override fun toString(): String {
+        return "ConfigNetKeyAdd(opCode: 0x${opCode.toString(radix = 16)}, index: $index)"
     }
 
     override fun equals(other: Any?): Boolean {
@@ -73,5 +65,17 @@ data class ConfigNetKeyAdd(
         result = 31 * result + parameters.contentHashCode()
         result = 31 * result + responseOpCode.hashCode()
         return result
+    }
+
+    companion object Initializer : ConfigMessageInitializer {
+        override val opCode = 0x8040u
+
+        override fun init(parameters: ByteArray?) = parameters?.takeIf {
+            it.size == 18
+        }?.let {
+            val netKeyIndex = decodeNetKeyIndex(data = it, offset = 0)
+            val key = it.copyOfRange(2, 18)
+            ConfigNetKeyAdd(index = netKeyIndex, key = key)
+        }
     }
 }

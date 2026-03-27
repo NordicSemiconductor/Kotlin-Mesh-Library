@@ -85,24 +85,24 @@ private data class Transaction(
         get() = Clock.System.now() - timestamp > 6.toDuration(DurationUnit.SECONDS)
 }
 
-internal class AcknowledgmentContext(
+internal class AcknowledgementContext(
     val request: AcknowledgedMeshMessage,
     val source: Address,
     val destination: Address,
-    val delay: Duration, // Duration in seconds
+    val delay: Duration,
     val repeatBlock: () -> Unit,
-    val timeout: Duration, // Duration in seconds
+    val timeout: Duration,
     val timeoutBlock: () -> Unit,
 ) {
 
-    var timeoutTimer = Timer()
-    private var timeoutTask = timeoutTimer.schedule(delay = timeout.inWholeMilliseconds) {
+    var timeoutTimer: Timer? = Timer()
+    private var timeoutTask: TimerTask? = timeoutTimer?.schedule(delay = timeout.inWholeMilliseconds) {
         invalidate()
         timeoutBlock()
     }
 
-    var retryTimer = Timer()
-    private var retryTimerTask = retryTimer.schedule(delay = delay.inWholeMilliseconds) {
+    var retryTimer: Timer? = Timer()
+    private var retryTimerTask: TimerTask? = retryTimer?.schedule(delay = delay.inWholeMilliseconds) {
         repeatBlock()
     }
 
@@ -111,29 +111,33 @@ internal class AcknowledgmentContext(
     }
 
     fun invalidate() {
-        timeoutTask.cancel()
-        timeoutTimer.cancel()
-        timeoutTimer.purge()
+        timeoutTask?.cancel()
+        timeoutTask = null
+        timeoutTimer?.cancel()
+        timeoutTimer?.purge()
+        timeoutTask = null
 
-        retryTimerTask.cancel()
-        retryTimer.cancel()
-        retryTimer.purge()
+        retryTimerTask?.cancel()
+        retryTimer?.cancel()
+        retryTimer?.purge()
     }
 
-    fun initializeRetryTimer(delay: Duration, callback: () -> Unit) {
-        retryTimerTask.cancel()
-        retryTimer.cancel()
-        retryTimer.purge()
+    private fun initializeRetryTimer(delay: Duration, callback: () -> Unit) {
+        retryTimerTask?.cancel()
+        retryTimer?.cancel()
+        retryTimer?.purge()
         retryTimer = Timer()
-        retryTimerTask = retryTimer.schedule(delay = delay.inWholeSeconds) {
-            callback()
-            initializeRetryTimer(delay = delay * 2, callback = callback)
+        retryTimerTask = retryTimer?.schedule(delay = delay.inWholeMilliseconds) {
+            if(retryTimer != null) {
+                callback()
+                initializeRetryTimer(delay = delay * 2, callback = callback)
+            }
         }
     }
 }
 
 /**
- * Defines the behaviour of the Access Layer of the Mesh Networking Stack.
+ * Defines the behavior of the Access Layer of the Mesh Networking Stack.
  *
  * @property networkManager  Network manager.
  */
@@ -146,8 +150,8 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
         get() = networkManager.logger
 
     private var transactions = mutableMapOf<Int, Transaction>()
-    private var reliableMessageContexts = mutableListOf<AcknowledgmentContext>()
-    internal val contexts: List<AcknowledgmentContext>
+    private var reliableMessageContexts = mutableListOf<AcknowledgementContext>()
+    internal val contexts: List<AcknowledgementContext>
         get() = reliableMessageContexts
     private var publishers = mutableMapOf<Model, TimerTask>()
 
@@ -157,12 +161,8 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
 
     private fun finalize() {
         transactions.clear()
-        reliableMessageContexts.forEach {
-            it.timeoutTimer.cancel()
-            it.timeoutTimer.purge()
-            it.retryTimer.cancel()
-            it.timeoutTimer.purge()
-        }
+        reliableMessageContexts.forEach { it.invalidate() }
+        reliableMessageContexts.clear()
         publishers.forEach {
             it.value.cancel()
         }
@@ -184,7 +184,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
 
     /**
      * This method handles the Upper Transport PDU and reads the Opcode. If the Opcode is supported,
-     * a message is created and sent to the corresponding Model. Otherwise a generic MeshMessage is
+     * a message is created and sent to the corresponding Model, otherwise a generic MeshMessage is
      * created for the app to handle.
      *
      * @param upperTransportPdu Upper Transport PDU received.
@@ -207,7 +207,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
             mutex.withLock {
                 val context = reliableMessageContexts.removeAt(index)
                 request = context.request
-                context.timeoutTimer.cancel()
+                context.invalidate()
             }
             logger?.i(LogCategory.ACCESS) {
                 "Response $accessPdu received (decrypted using key: $keySet)."
@@ -221,7 +221,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
     }
 
     /**
-     * sends the the given Mesh Message to the given destination address. The message is encrypted
+     * Sends the given Mesh Message to the given destination address. The message is encrypted
      * with the given Application Key and the network key bound to it.
      *
      * Before sending the message, the transaction identifier is updated for messages that extend
@@ -322,7 +322,6 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
         val keySet = DeviceKeySet.init(
             networkKey = networkKey, node = node
         ) ?: return null
-
         logger?.i(LogCategory.FOUNDATION_MODEL) {
             "Sending $message to ${
                 destination.toHexString(
@@ -440,7 +439,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                         it.request.responseOpCode == handle.opCode &&
                         it.destination == handle.source.address
             }.takeIf { it > -1 }?.let {
-                reliableMessageContexts.removeAt(it).invalidate()
+                reliableMessageContexts.removeAt(index = it).invalidate()
             }
         }
         networkManager.upperTransportLayer.cancel(handle)
@@ -545,7 +544,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                 }
             }
         } else {
-            // .. otherwise, the Device Key was used.
+            // otherwise, the Device Key was used.
             val models = localNode.elements
                 .flatMap { it.models }
                 .filter { it.supportsDeviceKey }
@@ -557,7 +556,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                 // Is this message targeting the local Node?
                 if (localNode.containsElementWithAddress(accessPdu.destination.address)) {
                     logger?.i(LogCategory.FOUNDATION_MODEL) {
-                        "$message received from : ${
+                        "$message received from: ${
                             accessPdu.source.toHexString(
                                 format = HexFormat {
                                     number.prefix = "0x"
@@ -629,16 +628,16 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
             val request = message as? ConfigAnyModelMessage
             request?.let { req ->
                 network.localProvisioner?.node?.let { localNode ->
-                    localNode.element(req.elementAddress)?.let { element ->
-                        element.model(message.modelId)?.let {
-                            refreshPeriodicPublisher(it)
+                    localNode.element(address = req.elementAddress)?.let { element ->
+                        element.model(modelId = message.modelId)?.let {
+                            refreshPeriodicPublisher(model = it)
                         }
                     }
                 }
             }
         }
         if (message is ConfigNodeReset) {
-            networkManager.emitNetworkManagerEvent(NetworkManagerEvent.OnNetworkReset)
+            networkManager.emitNetworkManagerEvent(event = NetworkManagerEvent.OnNetworkReset)
         }
     }
 
@@ -656,7 +655,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
      * Creates the context of an Acknowledged message.
      *
      * The context contains timers responsible for resending the message until a status is received,
-     * and allows the message to be cancelled.
+     * and allows the message to be canceled.
      *
      * @param pdu           Access PDU received.
      * @param element       Element to which the message was sent.
@@ -669,7 +668,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
         element: Element,
         initialTtl: UByte?,
         keySet: KeySet,
-    ): AcknowledgmentContext {
+    ): AcknowledgementContext {
         val request = pdu.message as AcknowledgedMeshMessage
         /*val request = pdu.message as? AcknowledgedMeshMessage ?: return null
         require(pdu.destination is UnicastAddress) { return null }*/
@@ -684,16 +683,17 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
 
         val timeout = networkManager.networkParameters.acknowledgementMessageTimeout
 
-        val ack = AcknowledgmentContext(
+        val ack = AcknowledgementContext(
             request = request,
             source = pdu.source,
             destination = pdu.destination.address,
             delay = initialDelay,
             repeatBlock = {
                 networkManager.takeIf {
-                    it.upperTransportLayer.isReceivingResponse(address = pdu.destination.address)
+                    !it.upperTransportLayer.isReceivingResponse(address = pdu.destination.address)
                 }?.let {
                     scope.launch {
+                        logger?.w(LogCategory.ACCESS) { "Resending $pdu" }
                         it.upperTransportLayer.send(accessPdu = pdu, ttl = ttl, keySet = keySet)
                     }
                 }
@@ -715,10 +715,12 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                             }
                         )
                     } to: ${
-                        pdu.destination.address.toHexString(format = HexFormat {
-                            number.prefix = "0x"
-                            upperCase = true
-                        })
+                        pdu.destination.address.toHexString(
+                            format = HexFormat {
+                                number.prefix = "0x"
+                                upperCase = true
+                            }
+                        )
                     } timed out."
                 }
                 scope.launch {

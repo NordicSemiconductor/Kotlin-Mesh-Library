@@ -100,8 +100,8 @@ class ConfigHeartbeatSubscriptionStatus(
     )
 
     override fun toString(): String {
-        return "ConfigHeartbeatSubscriptionStatus(state: $status,  source: $source, " +
-                "destination: $destination, periodLog: $periodLog, countLog: $countLog, " +
+        return "ConfigHeartbeatSubscriptionStatus(state: $status,  source: 0x${source.toHexString()}, " +
+                "destination: 0x${destination.toHexString()}, periodLog: $periodLog, countLog: $countLog, " +
                 "minHops: $minHops, maxHops: $maxHops)"
     }
 

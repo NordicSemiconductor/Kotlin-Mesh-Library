@@ -20,7 +20,7 @@ import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import java.nio.ByteOrder
 
 /**
- * Status declaring if the the [ConfigModelAppStatus] operation succeeded or not.
+ * Status declaring if the [ConfigModelAppStatus] operation succeeded or not.
  *
  * @constructor Constructs the ConfigAppKeyStatus message.
  */
@@ -75,7 +75,12 @@ class ConfigModelAppStatus(
 
     override fun toString() = "ConfigModelAppStatus(status: ${status}, " +
             "applicationKeyIndex: $keyIndex, " +
-            "elementAddress: ${elementAddress.toHexString()}, " +
+            "elementAddress: ${elementAddress.address.toHexString(
+                format = HexFormat { 
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            )}, " +
             "modelId: $modelId)"
 
     companion object Initializer : ConfigMessageInitializer {

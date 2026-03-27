@@ -45,7 +45,7 @@ include(":feature:provisioners")
 include(":feature:provisioning")
 include(":feature:scenes")
 include(":feature:ivindex")
-include(":feature:scanner")
+include(":feature:developer-settings")
 
 include(":mesh:core")
 include(":mesh:crypto")

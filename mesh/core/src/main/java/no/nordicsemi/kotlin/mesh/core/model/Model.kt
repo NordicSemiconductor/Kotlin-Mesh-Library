@@ -217,10 +217,11 @@ class Model internal constructor(
         get() = modelId.id == LARGE_COMPOSITION_DATA_CLIENT_MODEL_ID.toUInt()
 
     val requiresDeviceKey: Boolean
-        get() = isConfigurationServer || isConfigurationClient || isRemoteProvisioningServer ||
-                isRemoteProvisioningClient || isDirectedForwardingConfigurationServer ||
-                isDirectedForwardingConfigurationClient || isBridgeConfigurationServer ||
-                isBridgeConfigurationClient || isPrivateBeaconServer || isPrivateBeaconClient ||
+        get() = isConfigurationServer || isConfigurationClient ||
+                isRemoteProvisioningServer || isRemoteProvisioningClient ||
+                isDirectedForwardingConfigurationServer || isDirectedForwardingConfigurationClient ||
+                isBridgeConfigurationServer || isBridgeConfigurationClient ||
+                isPrivateBeaconServer || isPrivateBeaconClient ||
                 isOnDemandPrivateProxyServer || isOnDemandPrivateProxyClient ||
                 isSarConfigurationServer || isSarConfigurationClient ||
                 isLargeCompositionDataServer || isLargeCompositionDataClient

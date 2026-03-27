@@ -1,19 +1,23 @@
 plugins {
     // https://github.com/NordicSemiconductor/Android-Gradle-Plugins/blob/main/plugins/src/main/kotlin/AndroidFeatureConventionPlugin.kt
     alias(libs.plugins.nordic.feature)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.parcelize)
 }
 
 android {
-    namespace = "no.nordicsemi.android.nrfmesh.feature.scanner"
+    namespace = "no.nordicsemi.android.nrfmesh.feature.developer"
 }
 
 dependencies {
+    implementation(libs.kotlinx.datetime)
+    implementation(libs.kotlinx.serialization.json)
 
-    implementation(nordic.core)
-    implementation(nordic.kotlin.data)
-    implementation(nordic.permissions.ble)
-    implementation(nordic.scanner.ble)
+    implementation(project(":core:ui"))
+    implementation(project(":core:data"))
+    implementation(project(":core:navigation"))
+
+    implementation(project(":mesh:core"))
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)
@@ -24,12 +28,4 @@ dependencies {
     androidTestImplementation(libs.kotlin.junit)
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.rules)
-
-    api(project(":core:data"))
-    implementation(project(":core:ui"))
-    implementation(project(":core:navigation"))
-
-    api(project(":mesh:core"))
-    api(project(":mesh:bearer-gatt"))
-    api(project(":mesh:provisioning"))
 }

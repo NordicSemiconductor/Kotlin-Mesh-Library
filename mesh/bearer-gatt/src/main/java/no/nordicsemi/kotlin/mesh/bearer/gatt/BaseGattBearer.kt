@@ -138,6 +138,8 @@ abstract class BaseGattBearer<
                 .onCompletion {
                     // Let's clear the reference to the observer after cancellation
                     servicesObserver = null
+                    logger?.v(LogCategory.BEARER) { "Service observer completed. Setting bearer state to closed." }
+                    _state.value = BearerEvent.Closed(error = BearerError.Closed())
                 }
                 .launchIn(scope = scope)
         }
@@ -150,7 +152,6 @@ abstract class BaseGattBearer<
 
     override suspend fun close() {
         onClosed()
-        servicesObserver?.cancel()
         peripheral.disconnect()
     }
 
@@ -170,7 +171,9 @@ abstract class BaseGattBearer<
     private fun onClosed() {
         if (isOpen) {
             isOpen = false
-            _state.value = BearerEvent.Closed(error = BearerError.Closed())
+            servicesObserver?.cancel()
+            // Following line has been moved to the service observer flow onCompletion
+            // _state.value = BearerEvent.Closed(error = BearerError.Closed())
             logger?.v(LogCategory.BEARER) { "Bearer closed" }
         }
     }
@@ -183,7 +186,9 @@ abstract class BaseGattBearer<
             .forEach {
                 dataInCharacteristic
                     ?.also {
-                        logger?.v(LogCategory.BEARER) { "-> ${pdu.toHexString(format = HexFormat { number.prefix = "0x"; upperCase = true })}" }
+                        logger?.v(LogCategory.BEARER) {
+                            "-> ${pdu.toHexString(format = HexFormat { number.prefix = "0x"; upperCase = true })}"
+                        }
                     }
                     ?.write(data = it, writeType = WriteType.WITHOUT_RESPONSE)
                     ?: run {
@@ -203,7 +208,9 @@ abstract class BaseGattBearer<
         // Call subscribe first before setting notifying to avoid missing packets
         dataOutCharacteristic.subscribe()
             .onEach {
-                logger?.v(LogCategory.BEARER) { "<- ${it.toHexString(format = HexFormat { number.prefix = "0x"; upperCase = true })}" }
+                logger?.v(LogCategory.BEARER) {
+                    "<- ${it.toHexString(format = HexFormat { number.prefix = "0x"; upperCase = true })}"
+                }
                 proxyProtocolHandler
                     .reassemble(data = it)
                     ?.let { pdu -> _pdus.emit(pdu) }

@@ -7,9 +7,11 @@ import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigAnyModelMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigVirtualLabelMessage
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelSubscriptionAdd
 import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
+import no.nordicsemi.kotlin.mesh.core.model.SubscriptionAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
@@ -46,6 +48,38 @@ class ConfigModelSubscriptionVirtualAddressAdd(
                         modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
             } ?: modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN))
         }
+
+    /**
+     * Convenience constructor to create a ConfigModelSubscriptionAdd message.
+     *
+     * @param virtualAddress Virtual address to add the model subscription to.
+     * @param model Model to add the subscription to.
+     * @throws IllegalArgumentException If the model does not have a parent element.
+     */
+    @Throws(IllegalArgumentException::class)
+    constructor(virtualAddress: VirtualAddress, model: Model) : this(
+        virtualLabel = virtualAddress.uuid,
+        model = model
+    )
+
+    /**
+     * Convenience constructor to create a ConfigModelSubscriptionAdd message.
+     *
+     * @param virtualLabel Virtual label to add the model subscription to.
+     * @param model Model to add the subscription to.
+     * @throws IllegalArgumentException If the model does not have a parent element.
+     */
+    @Throws(IllegalArgumentException::class)
+    constructor(virtualLabel: Uuid, model: Model) : this(
+        virtualLabel = virtualLabel,
+        elementAddress = model.parentElement?.unicastAddress
+            ?: throw IllegalArgumentException("Element address cannot be null"),
+        modelIdentifier = when (model.modelId) {
+            is SigModelId -> model.modelId.modelIdentifier
+            is VendorModelId -> model.modelId.modelIdentifier
+        },
+        companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier,
+    )
 
     /**
      * Convenience constructor to create a ConfigModelSubscriptionAdd message.

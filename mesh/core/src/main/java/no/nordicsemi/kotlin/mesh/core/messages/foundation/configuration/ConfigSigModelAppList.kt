@@ -26,7 +26,7 @@ class ConfigSigModelAppList(
     override val applicationKeyIndexes: List<KeyIndex>,
 ) : ConfigResponse, ConfigStatusMessage, ConfigModelAppList {
     override val opCode: UInt = Initializer.opCode
-    override val parameters: ByteArray?
+    override val parameters: ByteArray
         get() = byteArrayOf(status.value.toByte()) +
                 elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
                 modelId.modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +

@@ -28,7 +28,10 @@ object DataStoreModule {
 
     @ActivityRetainedScoped
     @Provides
-    fun providePreferencesDataStore(@ApplicationContext appContext: Context, @IoDispatcher ioDispatcher: CoroutineDispatcher): DataStore<Preferences> {
+    fun providePreferencesDataStore(
+        @ApplicationContext appContext: Context,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    ): DataStore<Preferences> {
         return PreferenceDataStoreFactory.create(
             corruptionHandler = ReplaceFileCorruptionHandler(
                 produceNewData = { emptyPreferences() }

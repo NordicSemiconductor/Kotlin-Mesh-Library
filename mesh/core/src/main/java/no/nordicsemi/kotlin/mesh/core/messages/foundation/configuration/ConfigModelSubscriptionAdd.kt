@@ -79,9 +79,35 @@ class ConfigModelSubscriptionAdd(
         companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier,
     )
 
-    override fun toString() = "ConfigModelSubscriptionAdd(address: $address, " +
-            "elementAddress: $elementAddress, modelIdentifier: $modelIdentifier, " +
-            "companyIdentifier=$companyIdentifier)"
+    override fun toString() = "ConfigModelSubscriptionAdd(address: ${
+        address.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )
+    }, elementAddress: ${
+        elementAddress.address.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )
+    }, modelIdentifier: ${
+        modelIdentifier.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )
+    }, companyIdentifier=${
+        companyIdentifier?.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )
+    })"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x801Bu

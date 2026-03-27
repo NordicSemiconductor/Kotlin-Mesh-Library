@@ -64,17 +64,16 @@ import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningParameters
 import no.nordicsemi.kotlin.mesh.provisioning.ProvisioningState
 import no.nordicsemi.kotlin.mesh.provisioning.UnprovisionedDevice
 
-
 @Composable
 internal fun DeviceCapabilities(
     state: ProvisioningState.CapabilitiesReceived,
     snackbarHostState: SnackbarHostState,
     unprovisionedDevice: UnprovisionedDevice,
     networkKeys: List<NetworkKey>,
-    showAuthenticationDialog: Boolean,
-    onAuthenticationDialogDismissed: (Boolean) -> Unit,
+    showAuthenticationBottomSheet: Boolean,
+    onAuthenticationBottomSheetDismissed: (Boolean) -> Unit,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (ProvisioningParameters, Int, Int) -> Result<Boolean>,
+    onAddressChanged: (ProvisioningParameters, Int, Int) -> Unit,
     isValidAddress: (UShort) -> Boolean,
     onNetworkKeyClicked: (NetworkKey) -> Unit,
     onAuthenticationMethodSelected: (AuthenticationMethod) -> Unit,
@@ -164,11 +163,11 @@ internal fun DeviceCapabilities(
         Spacer(modifier = Modifier.size(size = 16.dp))
     }
 
-    if (showAuthenticationDialog) {
+    if (showAuthenticationBottomSheet) {
         AuthSelectionBottomSheet(
             capabilities = state.capabilities,
             onConfirmClicked = { onAuthenticationMethodSelected(it) },
-            onDismissRequest = { onAuthenticationDialogDismissed(false) },
+            onDismissRequest = { onAuthenticationBottomSheetDismissed(false) },
         )
     }
 }
@@ -200,7 +199,7 @@ private fun UnicastAddressRow(
     snackbarHostState: SnackbarHostState,
     keyboardController: SoftwareKeyboardController?,
     address: Address = UnicastAddress(1u).address,
-    onAddressChanged: (Int) -> Result<Boolean>,
+    onAddressChanged: (Int) -> Unit,
     isValidAddress: (UShort) -> Boolean,
     isCurrentlyEditable: Boolean,
     onEditableStateChanged: () -> Unit,

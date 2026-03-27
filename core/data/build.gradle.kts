@@ -22,9 +22,9 @@ dependencies {
     implementation(nordic.kotlin.data)
     implementation(nordic.blek.client.android)
 
-    implementation("androidx.datastore:datastore-core:1.2.0")
-    implementation("androidx.datastore:datastore-preferences:1.2.0")
-    implementation("androidx.datastore:datastore-preferences-proto:1.2.0")
+    implementation("androidx.datastore:datastore-core:1.2.1")
+    implementation("androidx.datastore:datastore-preferences:1.2.1")
+    implementation("androidx.datastore:datastore-preferences-proto:1.2.1")
 
     testImplementation(libs.junit4)
     testImplementation(libs.kotlin.junit)

@@ -35,7 +35,7 @@ fun EntryProviderScope<NavKey>.provisioningEntry(
             onAuthenticationMethodSelected = viewModel::onAuthenticationMethodSelected,
             authenticate = viewModel::authenticate,
             onProvisioningComplete = {
-                viewModel.onProvisioningComplete()
+                viewModel.onProvisioningComplete(uuid = it)
                 navigator.navigate(key = NodesKey)
                 navigator.navigate(key = NodeKey(nodeUuid = it.toString()))
             },
@@ -43,7 +43,8 @@ fun EntryProviderScope<NavKey>.provisioningEntry(
                 viewModel.onProvisioningFailed()
                 navigator.goBack()
             },
-            disconnect = viewModel::disconnect
+            disconnect = viewModel::disconnect,
+            isDeviceAlreadyProvisioned = viewModel::isDeviceAlreadyProvisioned
         )
     }
 }

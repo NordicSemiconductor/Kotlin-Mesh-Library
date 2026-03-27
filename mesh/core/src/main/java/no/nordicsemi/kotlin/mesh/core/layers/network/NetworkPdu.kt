@@ -118,20 +118,10 @@ internal class NetworkPdu internal constructor(
                     upperCase = true
                 }
             )
-        }, transportPdu: ${
-            encryptedData.toHexString(
-                format = HexFormat {
-                    number.prefix = "0x"
-                    upperCase = true
-                }
-            )
-        }, netMic: ${
-            mic.toHexString(
-                format = HexFormat {
-                    number.prefix = "0x"
-                    upperCase = true
-                }
-            )
+        }, transportPdu: 0x${
+            encryptedData.toHexString(format = HexFormat.UpperCase)
+        }, netMic: 0x${
+            mic.toHexString(format = HexFormat.UpperCase)
         })"
     }
 }

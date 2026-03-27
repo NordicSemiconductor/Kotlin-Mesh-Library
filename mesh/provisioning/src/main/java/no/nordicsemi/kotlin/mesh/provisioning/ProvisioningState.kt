@@ -39,9 +39,7 @@ sealed class ProvisioningState {
      *
      * @property action Lambda func to invoke to authenticate provisioning process.
      */
-    data class AuthActionRequired(
-        val action: AuthAction
-    ) : ProvisioningState()
+    data class AuthActionRequired(val action: AuthAction) : ProvisioningState()
 
     /**
      * Sent by the device once the user has provided an authentication value.
@@ -51,7 +49,7 @@ sealed class ProvisioningState {
     /**
      * The provisioning process is complete.
      */
-    object Complete : ProvisioningState()
+    object  Complete : ProvisioningState()
 
     /**
      * The provisioning has failed because of a local error.

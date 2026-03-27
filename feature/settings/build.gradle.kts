@@ -22,6 +22,7 @@ dependencies {
     api(project(":feature:application-keys"))
     api(project(":feature:scenes"))
     api(project(":feature:ivindex"))
+    api(project(":feature:developer-settings"))
     implementation(project(":mesh:core"))
 
     testImplementation(libs.junit4)

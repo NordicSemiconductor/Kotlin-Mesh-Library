@@ -55,7 +55,7 @@ class ConfigRelaySet(
     /**
      * Convenience constructor to disable Relay.
      */
-    constructor() : this(state = FeatureState.Enabled, count = 0, steps = 0u)
+    constructor() : this(state = FeatureState.Disabled, count = 0, steps = 0u)
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString() = "ConfigRelaySet(opCode: 0x${opCode.toHexString()}, state: $state, " +

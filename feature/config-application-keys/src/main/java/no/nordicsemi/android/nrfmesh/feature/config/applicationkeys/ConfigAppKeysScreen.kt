@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
+import no.nordicsemi.android.nrfmesh.core.common.KeyIdGenerator
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.Utils.describe
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
@@ -104,7 +105,7 @@ internal fun ConfigAppKeysScreen(
                     }
                     items(
                         items = addedApplicationKeys,
-                        key = { it.hashCode() }
+                        key = { KeyIdGenerator.nextId() }
                     ) { key ->
                         // Hold the current state from the Swipe to Dismiss composable
                         val dismissState = rememberSwipeToDismissBoxState()
@@ -171,7 +172,7 @@ internal fun ConfigAppKeysScreen(
                     .launch { bottomSheetState.hide() }
                     .invokeOnCompletion {
                         send(ConfigAppKeyAdd(key = key))
-                        if (!bottomSheetState.isVisible) showBottomSheet = false
+                        if (!bottomSheetState.isVisible) showBottomSheet = !showBottomSheet
                     }
             },
             onAddApplicationKeyClicked = {
@@ -181,7 +182,7 @@ internal fun ConfigAppKeysScreen(
                         scope
                             .launch { bottomSheetState.hide() }
                             .invokeOnCompletion {
-                                if (!bottomSheetState.isVisible) showBottomSheet = false
+                                if (!bottomSheetState.isVisible) showBottomSheet = !showBottomSheet
                             }
                     }
                 }.onFailure {
@@ -193,13 +194,13 @@ internal fun ConfigAppKeysScreen(
                     .launch { bottomSheetState.hide() }
                     .invokeOnCompletion {
                         navigateToApplicationKeys()
-                        if (!bottomSheetState.isVisible) showBottomSheet = false
+                        if (!bottomSheetState.isVisible) showBottomSheet = !showBottomSheet
                     }
             },
             onDismissClick = {
                 scope
                     .launch { bottomSheetState.hide() }
-                    .invokeOnCompletion { if (!bottomSheetState.isVisible) showBottomSheet = false }
+                    .invokeOnCompletion { if (!bottomSheetState.isVisible) showBottomSheet = !showBottomSheet }
             }
         )
     }
