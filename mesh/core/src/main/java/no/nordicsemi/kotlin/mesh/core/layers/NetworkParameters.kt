@@ -272,7 +272,7 @@ data class NetworkParameters(
 
     internal fun acknowledgementMessageInterval(ttl: UByte, segmentCount: Int) =
         _acknowledgementMessageInterval +
-                ((ttl.toDouble() * 0.050) + (segmentCount.toDouble() * 0.050))
+                (ttl.toDouble() * 0.050 + segmentCount.toDouble() * 0.050)
                     .seconds
 
     /**
