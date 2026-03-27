@@ -95,14 +95,14 @@ internal class AcknowledgementContext(
     val timeoutBlock: () -> Unit,
 ) {
 
-    var timeoutTimer = Timer()
-    private var timeoutTask = timeoutTimer.schedule(delay = timeout.inWholeMilliseconds) {
+    var timeoutTimer: Timer? = Timer()
+    private var timeoutTask: TimerTask? = timeoutTimer?.schedule(delay = timeout.inWholeMilliseconds) {
         invalidate()
         timeoutBlock()
     }
 
-    var retryTimer = Timer()
-    private var retryTimerTask = retryTimer.schedule(delay = delay.inWholeMilliseconds) {
+    var retryTimer: Timer? = Timer()
+    private var retryTimerTask: TimerTask? = retryTimer?.schedule(delay = delay.inWholeMilliseconds) {
         repeatBlock()
     }
 
@@ -111,23 +111,27 @@ internal class AcknowledgementContext(
     }
 
     fun invalidate() {
-        timeoutTask.cancel()
-        timeoutTimer.cancel()
-        timeoutTimer.purge()
+        timeoutTask?.cancel()
+        timeoutTask = null
+        timeoutTimer?.cancel()
+        timeoutTimer?.purge()
+        timeoutTask = null
 
-        retryTimerTask.cancel()
-        retryTimer.cancel()
-        retryTimer.purge()
+        retryTimerTask?.cancel()
+        retryTimer?.cancel()
+        retryTimer?.purge()
     }
 
-    fun initializeRetryTimer(delay: Duration, callback: () -> Unit) {
-        retryTimerTask.cancel()
-        retryTimer.cancel()
-        retryTimer.purge()
+    private fun initializeRetryTimer(delay: Duration, callback: () -> Unit) {
+        retryTimerTask?.cancel()
+        retryTimer?.cancel()
+        retryTimer?.purge()
         retryTimer = Timer()
-        retryTimerTask = retryTimer.schedule(delay = delay.inWholeSeconds) {
-            callback()
-            initializeRetryTimer(delay = delay * 2, callback = callback)
+        retryTimerTask = retryTimer?.schedule(delay = delay.inWholeMilliseconds) {
+            if(retryTimer != null) {
+                callback()
+                initializeRetryTimer(delay = delay * 2, callback = callback)
+            }
         }
     }
 }
@@ -157,12 +161,8 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
 
     private fun finalize() {
         transactions.clear()
-        reliableMessageContexts.forEach {
-            it.timeoutTimer.cancel()
-            it.timeoutTimer.purge()
-            it.retryTimer.cancel()
-            it.timeoutTimer.purge()
-        }
+        reliableMessageContexts.forEach { it.invalidate() }
+        reliableMessageContexts.clear()
         publishers.forEach {
             it.value.cancel()
         }
@@ -322,7 +322,6 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
         val keySet = DeviceKeySet.init(
             networkKey = networkKey, node = node
         ) ?: return null
-
         logger?.i(LogCategory.FOUNDATION_MODEL) {
             "Sending $message to ${
                 destination.toHexString(
