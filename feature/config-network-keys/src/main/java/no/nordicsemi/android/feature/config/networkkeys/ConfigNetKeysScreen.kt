@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Completed
 import no.nordicsemi.android.nrfmesh.core.common.Failed
+import no.nordicsemi.android.nrfmesh.core.common.KeyIdGenerator
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.Utils.describe
 import no.nordicsemi.android.nrfmesh.core.ui.MeshAlertDialog
@@ -103,7 +104,7 @@ internal fun ConfigNetKeysScreen(
                             title = stringResource(R.string.label_added_network_keys)
                         )
                     }
-                    items(items = addedNetworkKeys, key = { it.index.toInt() + 1 }) { key ->
+                    items(items = addedNetworkKeys, key = { KeyIdGenerator.nextId() }) { key ->
                         // Hold the current state from the Swipe to Dismiss composable
                         val dismissState = rememberSwipeToDismissBoxState()
                         val isInUse = isKeyInUse(key)
@@ -194,7 +195,7 @@ internal fun ConfigNetKeysScreen(
                 }.invokeOnCompletion {
                     navigateToNetworkKeys()
                     if (!bottomSheetState.isVisible) {
-                        showBottomSheet = false
+                        showBottomSheet = !showBottomSheet
                     }
                 }
             },
@@ -203,7 +204,7 @@ internal fun ConfigNetKeysScreen(
                     bottomSheetState.hide()
                 }.invokeOnCompletion {
                     if (!bottomSheetState.isVisible) {
-                        showBottomSheet = false
+                        showBottomSheet = !showBottomSheet
                     }
                 }
             }

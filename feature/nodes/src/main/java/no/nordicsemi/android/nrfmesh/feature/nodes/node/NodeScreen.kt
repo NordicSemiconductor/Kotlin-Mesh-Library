@@ -62,6 +62,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import no.nordicsemi.android.nrfmesh.core.common.KeyIdGenerator
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
 import no.nordicsemi.android.nrfmesh.core.common.copyToClipboard
 import no.nordicsemi.android.nrfmesh.core.data.configurator.MeshTask
@@ -291,7 +292,7 @@ internal fun NodeScreen(
                     )
                 }
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(space = 8.dp)) {
-                    items(items = tasks, key = { it.hashCode() }) {
+                    items(items = tasks, key = { KeyIdGenerator.nextId() }) {
                         ElevatedCardItem(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             imageVector = it.icon,
@@ -572,7 +573,7 @@ private fun DefaultTtlRow(
                                 errorMessage = ""
                             }
                         },
-                        label = { Text(text = context.getString(R.string.label_default_ttl)) },
+                        label = { Text(text = stringResource(R.string.label_default_ttl)) },
                         keyboardOptions = KeyboardOptions(
                             autoCorrectEnabled = false,
                             keyboardType = KeyboardType.Number
