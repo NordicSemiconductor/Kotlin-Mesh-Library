@@ -121,7 +121,8 @@ object UnassignedAddress : MeshAddress(),
     SubscriptionAddress,
     HeartbeatSubscriptionSource,
     HeartbeatPublicationDestination,
-    HeartbeatSubscriptionDestination {
+    HeartbeatSubscriptionDestination,
+    DistributionMulticastAddress {
     override val address = unassignedAddress
 
     fun isValid(address: Address): Boolean = address == unassignedAddress
@@ -143,7 +144,8 @@ data class UnicastAddress(
     HeartbeatPublicationDestination,
     HeartbeatSubscriptionSource,
     HeartbeatSubscriptionDestination,
-    ProxyFilterAddress {
+    ProxyFilterAddress,
+    DistributionMulticastAddress {
 
     constructor(address: Int) : this(address = address.toUShort())
 
@@ -196,7 +198,8 @@ data class VirtualAddress(
     PublicationAddress,
     SubscriptionAddress,
     HeartbeatPublicationDestination,
-    ProxyFilterAddress {
+    ProxyFilterAddress,
+    DistributionMulticastAddress {
 
     @OptIn(ExperimentalUuidApi::class)
     override val address: Address = Crypto.createVirtualAddress(uuid = uuid)
@@ -210,6 +213,17 @@ data class VirtualAddress(
     constructor(label: ByteArray) : this(uuid = label.toUuid())
 
     operator fun compareTo(o: VirtualAddress) = address.compareTo(other = o.address)
+
+    companion object {
+        /**
+         * Checks if the given address is a valid virtual address.
+         *
+         * @param address Address to check.
+         * @return True if the given address is a valid virtual address, false otherwise.
+         */
+        fun isValid(address: Address) = address in minVirtualAddress..maxVirtualAddress
+    }
+
 }
 
 /**
@@ -231,7 +245,8 @@ data class GroupAddress(
     SubscriptionAddress,
     HeartbeatPublicationDestination,
     HeartbeatSubscriptionDestination,
-    ProxyFilterAddress {
+    ProxyFilterAddress,
+    DistributionMulticastAddress {
 
     constructor(address: Int) : this(address = address.toUShort())
 
@@ -393,3 +408,16 @@ sealed interface ParentGroupAddress : HasAddress
  */
 @Serializable(with = MeshAddressSerializer::class)
 sealed interface ProxyFilterAddress : HasAddress
+
+/**
+ * An address type that can be a [GroupAddress], [FixedGroupAddress], [VirtualAddress] or an
+ * [UnassignedAddress] that would be used as Multicast Address in Firmware Distribution in Mesh DFU.
+ */
+sealed interface DistributionMulticastAddress : HasAddress {
+    companion object {
+        fun isValid(address: Address) = UnassignedAddress.isValid(address = address) ||
+                GroupAddress.isValid(address = address) ||
+                VirtualAddress.isValid(address = address) ||
+                FixedGroupAddress.isValid(address = address)
+    }
+}
