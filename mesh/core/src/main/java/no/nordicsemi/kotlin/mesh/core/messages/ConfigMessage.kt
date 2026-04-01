@@ -239,7 +239,7 @@ interface ConfigNetKeyMessage : ConfigMessage {
             encode(indexes = arrayOf(keyIndex))
 
         /**
-         * Decodes the Network Key Index from the given dat at the given offset.
+         * Decodes the Network Key Index from the given [data] at the given offset.
          *
          * @param data       Data from where the indexes should be read.
          * @param offset     Offset from where to read the indexes.
@@ -273,7 +273,7 @@ interface ConfigAppKeyMessage : ConfigMessage {
             encode(indexes = arrayOf(keyIndex))
 
         /**
-         * Decodes the Application Key Index from the given dat at the given offset.
+         * Decodes the Application Key Index from the given [data] at the given offset.
          *
          * @param data       Data from where the indexes should be read.
          * @param offset     Offset from where to read the indexes.
@@ -372,7 +372,7 @@ interface ConfigAnyModelMessage : ConfigModelMessage {
 }
 
 /**
- * A base interface for a app key bind model message to a model.
+ * A base interface for an app key bind model message to a model.
  */
 interface ConfigAnyAppKeyModelMessage : ConfigAnyModelMessage, ConfigAppKeyMessage
 
