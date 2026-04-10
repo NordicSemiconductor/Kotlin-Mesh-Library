@@ -2,12 +2,13 @@ package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.data.shl
 import no.nordicsemi.kotlin.data.shr
-import no.nordicsemi.kotlin.data.toHexString
+import no.nordicsemi.kotlin.data.ushr
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import kotlin.experimental.and
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -28,7 +29,7 @@ class ConfigNetworkTransmitStatus(val count: UByte, val steps: UByte) : ConfigRe
     override val opCode = Initializer.opCode
     override val parameters = byteArrayOf(((count and 0x07.toUByte()) or (steps shl 3)).toByte())
 
-    val interval: Duration = (steps + 1u).toInt().toDuration(unit = DurationUnit.SECONDS) / 100
+    val interval: Duration = (steps + 1u).toInt().seconds / 100
 
     /**
      * Convenience constructor.
@@ -46,14 +47,13 @@ class ConfigNetworkTransmitStatus(val count: UByte, val steps: UByte) : ConfigRe
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8025u
 
-        override fun init(parameters: ByteArray?) = parameters?.takeIf {
-            it.size == 1
-        }?.let { params ->
-            val first = params.first()
-            ConfigNetworkTransmitStatus(
-                count = (first and 0x07).toUByte(),
-                steps = (first shr 3).toUByte()
-            )
-        }
+        override fun init(parameters: ByteArray?) = parameters
+            ?.takeIf { it.size == 1 }
+            ?.let { params ->
+                ConfigNetworkTransmitStatus(
+                    count = (params[0] and 0x07).toUByte(),
+                    steps = (params[0] ushr 3).toUByte()
+                )
+            }
     }
 }
