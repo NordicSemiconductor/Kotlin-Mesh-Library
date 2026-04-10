@@ -1,7 +1,6 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.data.shl
-import no.nordicsemi.kotlin.data.shr
 import no.nordicsemi.kotlin.data.ushr
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
@@ -9,8 +8,6 @@ import no.nordicsemi.kotlin.mesh.core.model.Node
 import kotlin.experimental.and
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 /**
  * This message is the status message sent as a response to [ConfigNetworkTransmitGet] and
@@ -37,7 +34,7 @@ class ConfigNetworkTransmitStatus(val count: UByte, val steps: UByte) : ConfigRe
      * @param node Node object containing the network transmit settings.
      */
     constructor(node: Node) : this(
-        count = ((node.networkTransmit?.count ?: 1u) - 1u).toUByte(),
+        count = ((node.networkTransmit?.count ?: 1) - 1).toUByte(),
         steps = node.networkTransmit?.steps ?: 0u
     )
 

@@ -173,7 +173,7 @@ private fun RelayFeature(
             )
             Slider(
                 enabled = relay?.state?.isSupported == true &&
-                        retransmissions > 0 &&
+                        retransmissions > RelayRetransmit.MIN_COUNT &&
                         !messageState.isInProgress(),
                 value = interval,
                 onValueChange = { interval = it },
@@ -256,7 +256,7 @@ private fun NetworkTransmit(
                 onValueChange = {
                     transmissions = it
                 },
-                valueRange = RelayRetransmit.COUNT_RANGE.toFloat(),
+                valueRange = NetworkTransmit.COUNT_RANGE.toFloat(),
                 steps = 6,
                 colors = NordicSliderDefaults.colors()
             )
@@ -272,10 +272,10 @@ private fun NetworkTransmit(
                 textAlign = TextAlign.End
             )
             Slider(
-                enabled = transmissions > 0 && !messageState.isInProgress(),
+                enabled = transmissions > NetworkTransmit.MIN_COUNT && !messageState.isInProgress(),
                 value = interval,
                 onValueChange = { interval = it },
-                valueRange = RelayRetransmit.INTERVAL_RANGE.toFloat(),
+                valueRange = NetworkTransmit.INTERVAL_RANGE.toFloat(),
                 steps = 30,
                 colors = NordicSliderDefaults.colors()
             )
@@ -309,8 +309,8 @@ private fun NetworkTransmit(
                 onClick = {
                     send(
                         ConfigNetworkTransmitSet(
-                            count = transmissions.roundToInt().toUByte(),
-                            steps = NetworkTransmit.toSteps(interval.roundToInt().toUShort())
+                            count = (transmissions - 1).roundToInt().toUByte(),
+                            steps = NetworkTransmit.toSteps(interval.roundToInt())
                         )
                     )
                 },

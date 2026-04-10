@@ -192,17 +192,17 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
         // Unless a GATT Bearer is used, the Network PDUs should be sent multiple times if
         // Network Transmit has been set for the local Provisioner's Node
         if (type == PduType.NETWORK_PDU && networkManager.bearer is GattBearer) {
-            meshNetwork.localProvisioner?.node?.networkTransmit?.takeIf {
-                it.count > 1u
-            }?.let { networkTransmit ->
-                var count = networkTransmit.count.toInt()
-                timer(period = networkTransmit.intervalAsMilliseconds) {
-                    // networkManager.transmitter?.send(pdu = networkPdu.pdu, type = type)
-                    count -= 1
-                    if (count == 0)
-                        cancel()
+            meshNetwork.localProvisioner?.node?.networkTransmit
+                ?.takeIf { it.count > 1 }
+                ?.let { networkTransmit ->
+                    var count = networkTransmit.count
+                    timer(period = networkTransmit.intervalAsMilliseconds) {
+                        // networkManager.transmitter?.send(pdu = networkPdu.pdu, type = type)
+                        count -= 1
+                        if (count == 0)
+                            cancel()
+                    }
                 }
-            }
         }
     }
 

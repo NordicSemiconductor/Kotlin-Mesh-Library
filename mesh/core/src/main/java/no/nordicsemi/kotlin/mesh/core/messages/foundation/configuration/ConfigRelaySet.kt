@@ -3,7 +3,7 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.data.shl
-import no.nordicsemi.kotlin.data.shr
+import no.nordicsemi.kotlin.data.ushr
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.model.FeatureState
@@ -71,7 +71,7 @@ class ConfigRelaySet(
                 ConfigRelaySet(
                     state = state,
                     count = (params[1] and 0x07).toInt(),
-                    steps = (params[1] shr 3).toUByte()
+                    steps = (params[1] ushr 3).toUByte()
                 )
             }
     }

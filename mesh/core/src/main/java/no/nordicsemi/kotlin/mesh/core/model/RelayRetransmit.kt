@@ -3,9 +3,6 @@ package no.nordicsemi.kotlin.mesh.core.model
 import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelaySet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelayStatus
-import kotlin.time.Duration
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 /**
  * The relay retransmit object represents the parameters of the retransmissions of network layer
@@ -16,38 +13,21 @@ import kotlin.time.toDuration
  * @property interval        An integer from 10 to 320 that represents the interval in milliseconds
  *                           between the transmissions.
  * @property steps           Number of steps between each retransmission (10 to 320 ms in 10ms steps).
- * @property timeInterval    The time interval between each transmissions in seconds.
  */
 @Serializable
 data class RelayRetransmit(val count: Int, val interval: Int) {
-
-    val steps: UByte
-        get() = ((interval / 10) - 1).toUByte()
-
-    val timeInterval: Duration
-        get() = interval.toDuration(DurationUnit.SECONDS)
+    val steps: UByte = ((interval / 10) - 1).toUByte()
 
     init {
-        require(count in MIN_COUNT..MAX_COUNT) {
+        require(count in COUNT_RANGE) {
             "Error while creating RelayRetransmit: count value was $count. Count must range from " +
                     "$MIN_COUNT to $MAX_COUNT"
         }
-        require(interval in MIN_INTERVAL..MAX_INTERVAL) {
+        require(interval in INTERVAL_RANGE) {
             "Error while creating RelayRetransmit: interval value was $interval. Interval must range" +
                     " from $MIN_INTERVAL to $MAX_INTERVAL"
         }
     }
-
-    /**
-     * Convenience constructor
-     *
-     * @param incorrectRetransmit incorrect relay retransmit
-     */
-    @Suppress("unused")
-    internal constructor(incorrectRetransmit: RelayRetransmit) : this(
-        count = incorrectRetransmit.count,
-        interval = incorrectRetransmit.interval
-    )
 
     /**
      * Convenience constructor to be invoked upon receiving a [ConfigRelaySet] message.

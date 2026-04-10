@@ -172,7 +172,7 @@ class Messenger(
                                 reconfigTasks.add(
                                     element = ConfigTask(
                                         icon = Icons.Outlined.NetworkPing,
-                                        label = "Set Retransmit to ${it.timeInterval} on ${newNode.name}",
+                                        label = "Set Retransmit to ${it.steps}ms on ${newNode.name}",
                                         message = ConfigRelaySet(relayRetransmit = it)
                                     )
                                 )

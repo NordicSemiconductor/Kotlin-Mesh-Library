@@ -1,14 +1,13 @@
 package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.data.shl
-import no.nordicsemi.kotlin.data.shr
+import no.nordicsemi.kotlin.data.ushr
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.model.NetworkTransmit
 import kotlin.experimental.and
 import kotlin.time.Duration
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * This message is used to get the network transmit settings of the node. The response to this
@@ -20,13 +19,12 @@ import kotlin.time.toDuration
  *                    Possible values are 0...31, which correspond to 10 ms to 320 ms in 10 ms
  *                    steps.
  */
-class ConfigNetworkTransmitSet(val count : UByte, val steps: UByte) : AcknowledgedConfigMessage {
+class ConfigNetworkTransmitSet(val count: UByte, val steps: UByte) : AcknowledgedConfigMessage {
     override val opCode = Initializer.opCode
     override val responseOpCode = ConfigNetworkTransmitStatus.opCode
     override val parameters = byteArrayOf(((count and 0x07u) or (steps shl 3)).toByte())
 
-    val interval: Duration
-        get() = (steps + 1u).toInt().toDuration(unit = DurationUnit.SECONDS) / 100
+    val interval: Duration = (steps + 1u).toInt().seconds / 100
 
     /**
      * Convenience constructor
@@ -34,8 +32,8 @@ class ConfigNetworkTransmitSet(val count : UByte, val steps: UByte) : Acknowledg
      * @param networkTransmit Network Transmit to be set
      */
     constructor(networkTransmit: NetworkTransmit) : this(
-        count = networkTransmit.count,
-        steps = networkTransmit.steps
+        count = (networkTransmit.count - 1).toUByte(),
+        steps = networkTransmit.steps,
     )
 
     @OptIn(ExperimentalStdlibApi::class)
@@ -50,7 +48,7 @@ class ConfigNetworkTransmitSet(val count : UByte, val steps: UByte) : Acknowledg
             val first = params.first()
             ConfigNetworkTransmitStatus(
                 count = (first and 0x07).toUByte(),
-                steps = (first shr 3).toUByte()
+                steps = (first ushr 3).toUByte()
             )
         }
     }
