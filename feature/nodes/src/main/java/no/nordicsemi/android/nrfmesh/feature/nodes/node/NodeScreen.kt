@@ -238,7 +238,7 @@ internal fun NodeScreen(
             item {
                 SectionTitle(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    title = stringResource(id = R.string.label_node_removal)
+                    title = stringResource(id = R.string.label_node_deletion)
                 )
             }
             item { ResetRow(messageState = messageState, navigateBack = navigateBack, send = send) }
