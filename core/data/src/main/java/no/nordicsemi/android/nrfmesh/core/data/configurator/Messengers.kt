@@ -92,6 +92,7 @@ class Messenger(
     private var originalNode: Node? = null
     private var job: Job? = null
 
+    @Suppress("unused")
     private val isCompleted: Boolean
         get() = _configTasksFlow.value.none {
             it.status !is TaskStatus.Completed
