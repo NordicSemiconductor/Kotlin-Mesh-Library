@@ -150,7 +150,7 @@ class Messenger(
                 reconfigTasks.add(
                     element = ConfigTask(
                         icon = Icons.Outlined.WifiTethering,
-                        label = "${if (it) "Enable" else "Disable"} Secure Network Beacon  on ${newNode.name}",
+                        label = "${if (it) "Enable" else "Disable"} Secure Network beacon on ${newNode.name}",
                         message = ConfigBeaconSet(enable = it)
                     )
                 )
@@ -198,7 +198,7 @@ class Messenger(
                         reconfigTasks.add(
                             element = ConfigTask(
                                 icon = Icons.Outlined.Hub,
-                                label = "${if (proxy.state is FeatureState.Enabled) "Enabling" else "Disabling"} Gatt Proxy on ${newNode.name}",
+                                label = "${if (proxy.state is FeatureState.Enabled) "Enabling" else "Disabling"} GATT Proxy on ${newNode.name}",
                                 message = ConfigGattProxySet(enable = proxy.state is FeatureState.Enabled)
                             )
                         )
