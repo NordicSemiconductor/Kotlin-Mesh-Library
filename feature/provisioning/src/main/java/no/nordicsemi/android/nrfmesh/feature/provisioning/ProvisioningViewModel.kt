@@ -2,10 +2,12 @@ package no.nordicsemi.android.nrfmesh.feature.provisioning
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeviceHub
+import androidx.compose.material.icons.outlined.Timer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
@@ -340,7 +342,7 @@ class ProvisioningViewModel @Inject constructor(
         messenger.enqueueTask(
             task = ConfigTask(
                 icon = Icons.Outlined.DeviceHub,
-                label = "Reading composition of the node",
+                label = "Reading composition data",
                 message = ConfigCompositionDataGet(page = 0x00u)
             )
         )
@@ -351,14 +353,17 @@ class ProvisioningViewModel @Inject constructor(
         } else {
             messenger.enqueueTask(
                 task = ConfigTask(
-                    icon = Icons.Outlined.DeviceHub,
-                    label = "Reading composition of the node",
+                    icon = Icons.Outlined.Timer,
+                    label = "Reading default TTL",
                     message = ConfigDefaultTtlGet()
                 )
             )
         }
-        disconnect()
-        repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
+        viewModelScope.launch {
+            repository.disconnect()
+            _uiState.update { it.copy(provisionerState = Scanning) }
+            repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
+        }
     }
 
     /**
