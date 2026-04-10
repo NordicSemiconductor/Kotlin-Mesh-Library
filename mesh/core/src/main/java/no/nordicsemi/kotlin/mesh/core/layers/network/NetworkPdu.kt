@@ -246,7 +246,7 @@ internal object NetworkPduDecoder {
                     pdu = pdu,
                     key = networkKey,
                     ivIndex = currentIvIndex,
-                    ivi = nid,
+                    ivi = ivi,
                     nid = nid,
                     type = type,
                     ttl = ttl,
