@@ -50,7 +50,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -239,16 +238,10 @@ internal fun NodeScreen(
             item {
                 SectionTitle(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    title = stringResource(id = R.string.label_reset_node)
+                    title = stringResource(id = R.string.label_node_removal)
                 )
             }
             item { ResetRow(messageState = messageState, navigateBack = navigateBack, send = send) }
-            item {
-                SectionTitle(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    title = stringResource(id = R.string.label_remove_node)
-                )
-            }
             item {
                 RemoveNode(
                     navigateBack = navigateBack,
