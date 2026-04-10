@@ -170,42 +170,32 @@ private fun ProvisionerContent(
             text = stringResource(R.string.label_warning_provisioning_rationale),
             onDismissRequest = { showReprovisionDialog = !showReprovisionDialog },
             content = {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalAlignment = Alignment.End
                 ) {
                     TextButton(
                         onClick = {
                             beginProvisioning()
-                            // TODO()
-                            // beginProvisioning()
-                            // showReprovisionDialog = !showReprovisionDialog
-                            // openDeviceCapabilitiesSheet = true
+                            showReprovisionDialog = !showReprovisionDialog
+                            openDeviceCapabilitiesSheet = true
                         },
                         content = { Text(text = stringResource(R.string.label_reprovision_configure)) }
                     )
-                    Row(
-                        modifier = Modifier
-                            .weight(weight = 1f),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        TextButton(
-                            onClick = {
-                                showReprovisionDialog = !showReprovisionDialog
-                            },
-                            content = { Text(text = stringResource(R.string.label_cancel)) }
-                        )
-                        TextButton(
-                            onClick = {
-                                beginProvisioning()
-                                showReprovisionDialog = !showReprovisionDialog
-                                openDeviceCapabilitiesSheet = true
-                            },
-                            content = { Text(text = stringResource(R.string.label_reprovision)) }
-                        )
-                    }
+                    TextButton(
+                        onClick = {
+                            beginProvisioning()
+                            showReprovisionDialog = !showReprovisionDialog
+                            openDeviceCapabilitiesSheet = true
+                        },
+                        content = { Text(text = stringResource(R.string.label_reprovision_as_new_device)) }
+                    )
+                    TextButton(
+                        onClick = { showReprovisionDialog = !showReprovisionDialog },
+                        content = { Text(text = stringResource(R.string.label_cancel)) }
+                    )
                 }
             }
         )
