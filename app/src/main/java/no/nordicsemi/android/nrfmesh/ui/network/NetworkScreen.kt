@@ -5,9 +5,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -46,7 +44,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -162,7 +159,6 @@ private fun NetworkContent(
 ) {
     val scope = rememberCoroutineScope()
     val selectProvisionerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
-    var menuExpanded by remember { mutableStateOf(false) }
     var showExportBottomSheet by rememberSaveable { mutableStateOf(false) }
     val exportSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showResetNetworkDialog by rememberSaveable { mutableStateOf(false) }
@@ -180,7 +176,8 @@ private fun NetworkContent(
                             imageVector = when (selected) {
                                 true -> navItem.selectedIcon
                                 false -> navItem.unselectedIcon
-                            }, contentDescription = null
+                            },
+                            contentDescription = null
                         )
                     },
                     label = {
@@ -222,23 +219,31 @@ private fun NetworkContent(
                         repeat(entries.size - scene.previousEntries.size) { navigator.goBack() }
                     },
                     actions = {
-                        DisplayDropdown(
-                            appState = appState,
-                            menuExpanded = menuExpanded,
-                            onExpandPressed = { menuExpanded = true },
-                            onDismissRequest = { menuExpanded = false },
-                            importNetwork = { uri, contentResolver ->
-                                importNetwork(uri, contentResolver)
-                            },
-                            navigateToExport = {
-                                menuExpanded = false
-                                showExportBottomSheet = true
-                            },
-                            onResetNetworkClicked = {
-                                menuExpanded = false
-                                showResetNetworkDialog = true
-                            }
-                        )
+                        // We have to consider two conditions when displaying the dropdown in the settings screen
+                        // 1. Current key destination is settings key
+                        // 2. For non-compact width devices the dropdown must be displayed irrespective of where you
+                        //    are in the settings screen
+                        if (appState.navigationState.currentKey is SettingsKey ||
+                            appState.navigationState.currentTopLevelKey is SettingsKey && !isCompactWidth()
+                        ) {
+                            var menuExpanded by remember { mutableStateOf(false) }
+                            DisplayDropdown(
+                                menuExpanded = menuExpanded,
+                                onExpandPressed = { menuExpanded = true },
+                                onDismissRequest = { menuExpanded = false },
+                                importNetwork = { uri, contentResolver ->
+                                    importNetwork(uri, contentResolver)
+                                },
+                                navigateToExport = {
+                                    menuExpanded = false
+                                    showExportBottomSheet = true
+                                },
+                                onResetNetworkClicked = {
+                                    menuExpanded = false
+                                    showResetNetworkDialog = true
+                                }
+                            )
+                        }
                     }
                 )
             }
@@ -349,7 +354,6 @@ private fun NetworkContent(
 
 @Composable
 private fun DisplayDropdown(
-    appState: MeshAppState,
     menuExpanded: Boolean,
     onExpandPressed: () -> Unit,
     onDismissRequest: () -> Unit,
@@ -365,74 +369,65 @@ private fun DisplayDropdown(
             importNetwork(uri, context.contentResolver)
         }
     }
-    // We have to consider two conditions when displaying the dropdown in the settings screen
-    // 1. Current key destination is settings key
-    // 2. For non-compact width devices the dropdown must be displayed irrespective of where you
-    //    are in the settings screen
-    if (appState.navigationState.currentKey is SettingsKey ||
-        appState.navigationState.currentTopLevelKey is SettingsKey && !isCompactWidth()
+    IconButton(
+        onClick = onExpandPressed
     ) {
-        Box(
-            modifier = Modifier
-                .padding(start = 16.dp)
-                .padding(vertical = 16.dp)
-        ) {
-            IconButton(
-                onClick = onExpandPressed,
-                content = { Icon(imageVector = Icons.Filled.MoreVert, contentDescription = null) })
-            DropdownMenu(expanded = menuExpanded, onDismissRequest = onDismissRequest) {
-                DropdownMenuItem(
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            Icon(imageVector = Icons.Outlined.Download, contentDescription = null)
-                            Text(
-                                modifier = Modifier.padding(start = 16.dp),
-                                text = stringResource(R.string.label_import)
-                            )
-                        }
-                    },
-                    onClick = {
-                        fileLauncher.launch("application/json")
-                        onDismissRequest()
-                    }
+        Icon(
+            imageVector = Icons.Filled.MoreVert,
+            contentDescription = null
+        )
+    }
+    DropdownMenu(
+        expanded = menuExpanded,
+        onDismissRequest = onDismissRequest
+    ) {
+        DropdownMenuItem(
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.Download,
+                    contentDescription = null
                 )
-                DropdownMenuItem(
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            Icon(imageVector = Icons.Outlined.Upload, contentDescription = null)
-                            Text(
-                                modifier = Modifier.padding(start = 16.dp),
-                                text = stringResource(R.string.label_export)
-                            )
-                        }
-                    },
-                    onClick = navigateToExport
+            },
+            text = {
+                Text(
+                    modifier = Modifier.padding(start = 16.dp),
+                    text = stringResource(R.string.label_import)
                 )
-                DropdownMenuItem(
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.DeleteForever,
-                                contentDescription = null
-                            )
-                            Text(
-                                modifier = Modifier.padding(start = 16.dp),
-                                text = stringResource(R.string.label_reset_network)
-                            )
-                        }
-                    },
-                    onClick = dropUnlessResumed { onResetNetworkClicked() }
-                )
+            },
+            onClick = {
+                fileLauncher.launch("application/json")
+                onDismissRequest()
             }
-        }
+        )
+        DropdownMenuItem(
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.Upload,
+                    contentDescription = null
+                )
+            },
+            text = {
+                Text(
+                    modifier = Modifier.padding(start = 16.dp),
+                    text = stringResource(R.string.label_export)
+                )
+            },
+            onClick = navigateToExport
+        )
+        DropdownMenuItem(
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.DeleteForever,
+                    contentDescription = null
+                )
+            },
+            text = {
+                Text(
+                    modifier = Modifier.padding(start = 16.dp),
+                    text = stringResource(R.string.label_reset_network)
+                )
+            },
+            onClick = dropUnlessResumed { onResetNetworkClicked() }
+        )
     }
 }
