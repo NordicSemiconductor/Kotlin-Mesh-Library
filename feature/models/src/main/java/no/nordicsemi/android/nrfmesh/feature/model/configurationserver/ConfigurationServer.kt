@@ -212,10 +212,8 @@ private fun RelayFeature(
                     runCatching {
                         send(
                             ConfigRelaySet(
-                                relayRetransmit = RelayRetransmit(
-                                    count = retransmissions.roundToInt(),
-                                    interval = interval.roundToInt()
-                                )
+                                count = retransmissions.roundToInt(),
+                                interval = interval.roundToInt()
                             )
                         )
                     }.onFailure {
@@ -309,8 +307,8 @@ private fun NetworkTransmit(
                 onClick = {
                     send(
                         ConfigNetworkTransmitSet(
-                            count = (transmissions - 1).roundToInt().toUByte(),
-                            steps = NetworkTransmit.toSteps(interval.roundToInt())
+                            count = transmissions.roundToInt(),
+                            interval = interval.roundToInt()
                         )
                     )
                 },

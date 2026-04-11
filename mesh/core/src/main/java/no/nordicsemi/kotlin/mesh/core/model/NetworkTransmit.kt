@@ -19,9 +19,20 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNe
 @ConsistentCopyVisibility
 @Serializable
 data class NetworkTransmit internal constructor(val count: Int, val interval: Int) {
+    /**
+     * Interval in milliseconds.
+     */
     @Transient
-    val steps = toSteps(interval = interval)
     val intervalAsMilliseconds : Long = interval.toLong()
+
+    init {
+        require(count in COUNT_RANGE) {
+            "Network Transmit count must be in range $COUNT_RANGE"
+        }
+        require(interval in INTERVAL_RANGE) {
+            "Network Transmit interval must in range $INTERVAL_RANGE milliseconds"
+        }
+    }
 
     /**
      * Convenience constructor.
@@ -43,17 +54,6 @@ data class NetworkTransmit internal constructor(val count: Int, val interval: In
         interval = (status.steps.toInt() + 1) * 10
     )
 
-    init {
-        require(count in COUNT_RANGE) {
-            "Error while creating NetworkTransmit: count must be a value from " +
-                    "$MIN_COUNT to $MAX_COUNT number of transmissions!"
-        }
-        require(interval in INTERVAL_RANGE) {
-            "Error while creating NetworkTransmit: interval must be a value from " +
-                    "$MIN_INTERVAL to $MAX_INTERVAL milliseconds between transmissions!"
-        }
-    }
-
     companion object {
         const val MIN_COUNT = 1
         const val MAX_COUNT = 8
@@ -61,12 +61,5 @@ data class NetworkTransmit internal constructor(val count: Int, val interval: In
         const val MIN_INTERVAL = 10
         const val MAX_INTERVAL = 320
         val INTERVAL_RANGE = MIN_INTERVAL..MAX_INTERVAL
-
-        /**
-         * Converts Interval to steps.
-         *
-         * @param interval Interval in milliseconds between the transmissions.
-         */
-        fun toSteps(interval: Int): UByte = ((interval / 10) - 1).toUByte()
     }
 }

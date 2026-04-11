@@ -1,6 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelaySet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRelayStatus
 
@@ -12,20 +13,22 @@ import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigRe
  *                           relay messages.
  * @property interval        An integer from 10 to 320 that represents the interval in milliseconds
  *                           between the transmissions.
- * @property steps           Number of steps between each retransmission (10 to 320 ms in 10ms steps).
  */
+@ConsistentCopyVisibility
 @Serializable
-data class RelayRetransmit(val count: Int, val interval: Int) {
-    val steps: UByte = ((interval / 10) - 1).toUByte()
+data class RelayRetransmit internal constructor(val count: Int, val interval: Int) {
+    /**
+     * Interval in milliseconds.
+     */
+    @Transient
+    val intervalAsMilliseconds : Long = interval.toLong()
 
     init {
         require(count in COUNT_RANGE) {
-            "Error while creating RelayRetransmit: count value was $count. Count must range from " +
-                    "$MIN_COUNT to $MAX_COUNT"
+            "Relay Retransmit count must be in range $COUNT_RANGE"
         }
         require(interval in INTERVAL_RANGE) {
-            "Error while creating RelayRetransmit: interval value was $interval. Interval must range" +
-                    " from $MIN_INTERVAL to $MAX_INTERVAL"
+            "Relay Retransmit interval must be in range $INTERVAL_RANGE milliseconds"
         }
     }
 
@@ -36,7 +39,7 @@ data class RelayRetransmit(val count: Int, val interval: Int) {
      */
     @Suppress("unused")
     internal constructor(request: ConfigRelaySet) : this(
-        count = request.count + 1,
+        count = request.count.toInt() + 1,
         interval = (request.steps.toInt() + 1) * 10
     )
 
@@ -46,7 +49,7 @@ data class RelayRetransmit(val count: Int, val interval: Int) {
      * @param status [ConfigRelayStatus] message.
      */
     internal constructor(status: ConfigRelayStatus) : this(
-        count = status.count + 1,
+        count = status.count.toInt() + 1,
         interval = (status.steps.toInt() + 1) * 10
     )
 
