@@ -14,6 +14,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 import no.nordicsemi.android.nrfmesh.core.navigation.AppState
+import no.nordicsemi.android.nrfmesh.core.navigation.GroupsListDetailSceneKey
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.core.ui.PlaceHolder
 import no.nordicsemi.android.nrfmesh.feature.groups.R
@@ -31,7 +32,7 @@ data class GroupKey(val address: HexString) : NavKey
 fun EntryProviderScope<NavKey>.groupEntry(appState: AppState, navigator: Navigator) {
     entry<GroupKey>(
         metadata = ListDetailSceneStrategy.listPane(
-            sceneKey = GroupKey,
+            sceneKey = GroupsListDetailSceneKey,
             detailPlaceholder = {
                 PlaceHolder(
                     modifier = Modifier.fillMaxSize(),
@@ -42,10 +43,9 @@ fun EntryProviderScope<NavKey>.groupEntry(appState: AppState, navigator: Navigat
         )
     ) { key ->
         val address = key.address
-        val viewModel =
-            hiltViewModel<GroupViewModel, GroupViewModel.Factory>(key = address) {
-                it.create(address = address)
-            }
+        val viewModel = hiltViewModel<GroupViewModel, GroupViewModel.Factory>(key = address) {
+            it.create(address = address)
+        }
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         GroupScreen(
             uiState = uiState,
@@ -68,5 +68,5 @@ fun EntryProviderScope<NavKey>.groupEntry(appState: AppState, navigator: Navigat
             save = viewModel::save
         )
     }
-    groupControlsEntry(appState = appState, navigator = navigator)
+    groupControlsEntry()
 }
