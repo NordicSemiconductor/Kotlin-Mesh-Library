@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PersonPin
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.DropdownMenu
@@ -55,10 +56,12 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.scene.rememberSceneState
 import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.theme.nordicSun
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.navigation.MESH_TOP_LEVEL_NAV_ITEMS
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
+import no.nordicsemi.android.nrfmesh.core.navigation.NodeKey
 import no.nordicsemi.android.nrfmesh.core.navigation.SettingsKey
 import no.nordicsemi.android.nrfmesh.core.navigation.toEntries
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
@@ -75,9 +78,13 @@ import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
 import no.nordicsemi.android.nrfmesh.viewmodel.MeshNetworkState
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkScreenUiState
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
+import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Composable
 internal fun NetworkScreen(
@@ -91,6 +98,7 @@ internal fun NetworkScreen(
     navigateToWizard: () -> Unit,
     isCompactWidth: Boolean = isCompactWidth(),
     resetMeshNetworkUiState: () -> Unit,
+    startAttentionTimer: (Node) -> Unit,
 ) {
     when (uiState.networkState) {
         MeshNetworkState.Loading -> {
@@ -122,7 +130,8 @@ internal fun NetworkScreen(
                 resetNetwork = resetNetwork,
                 navigateToWizard = navigateToWizard,
                 topAppBarTitle = topAppBarTitle,
-                onImportErrorAcknowledged = onImportErrorAcknowledged
+                onImportErrorAcknowledged = onImportErrorAcknowledged,
+                startAttentionTimer = startAttentionTimer,
             )
         }
 
@@ -156,12 +165,14 @@ private fun NetworkContent(
     resetNetwork: () -> Unit,
     topAppBarTitle: String,
     navigateToWizard: () -> Unit,
+    startAttentionTimer: (Node) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val selectProvisionerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var showExportBottomSheet by rememberSaveable { mutableStateOf(false) }
     val exportSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showResetNetworkDialog by rememberSaveable { mutableStateOf(false) }
+    var showAutoConfigurationHealthServerDialog by rememberSaveable { mutableStateOf(false) }
     val navigator = remember { Navigator(appState.navigationState) }
     NavigationSuiteScaffold(
         navigationItemVerticalArrangement = Arrangement.Center,
@@ -190,7 +201,7 @@ private fun NetworkContent(
             }
         }
     ) {
-        val litDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
+        val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
         val entryProvider = entryProvider {
             nodesEntry(appState = appState, navigator = navigator)
             provisioningEntry(appState = appState, navigator = navigator)
@@ -200,7 +211,8 @@ private fun NetworkContent(
         }
         val entries = appState.navigationState.toEntries(entryProvider = entryProvider)
         val sceneState = rememberSceneState(
-            entries = entries, sceneStrategy = litDetailStrategy, onBack = { navigator.goBack() })
+            entries = entries, sceneStrategy = listDetailStrategy, onBack = navigator::goBack
+        )
         val scene = sceneState.currentScene
         Scaffold(
             snackbarHost = { SnackbarHost(hostState = appState.snackbarHostState) },
@@ -244,6 +256,31 @@ private fun NetworkContent(
                                 }
                             )
                         }
+                        // On Node screen, show items for Identify and Configure.
+                        val nodeUuid =
+                           (appState.navigationState.currentKey as? NodeKey)?.nodeUuid ?:
+                            appState.navigationState.currentSubStack
+                                .firstNotNullOfOrNull { (it as? NodeKey)?.nodeUuid }
+                                ?.takeIf { !isCompactWidth() }
+                        val node = nodeUuid?.let { network.node(Uuid.parse(it)) }
+                        if (node != null) {
+                            IconButton(
+                                onClick = {
+                                    val healthServerModel = node.primaryElement.models.firstOrNull { it.isHealthServer } ?: return@IconButton
+                                    val hasBoundKeys = healthServerModel.boundApplicationKeys.isNotEmpty()
+                                    if (hasBoundKeys) {
+                                        startAttentionTimer(node)
+                                    } else {
+                                        showAutoConfigurationHealthServerDialog = true
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.NotificationsActive,
+                                    contentDescription = null
+                                )
+                            }
+                        }
                     }
                 )
             }
@@ -253,7 +290,7 @@ private fun NetworkContent(
                     .fillMaxSize()
                     .padding(paddingValues = padding),
                 entries = appState.navigationState.toEntries(entryProvider = entryProvider),
-                sceneStrategy = litDetailStrategy,
+                sceneStrategy = listDetailStrategy,
                 onBack = navigator::goBack
             )
         }
@@ -287,6 +324,28 @@ private fun NetworkContent(
                 dismissButtonText = null,
                 onDismissRequest = onImportErrorAcknowledged
             )
+        }
+        if (showAutoConfigurationHealthServerDialog) {
+            val nodeUuid =
+                (appState.navigationState.currentKey as? NodeKey)?.nodeUuid ?:
+                appState.navigationState.currentSubStack
+                    .firstNotNullOfOrNull { (it as? NodeKey)?.nodeUuid }
+                    ?.takeIf { !isCompactWidth() }
+            val node = nodeUuid?.let { network.node(Uuid.parse(it)) }
+            if (node != null) {
+                MeshAlertDialog(
+                    icon = Icons.Outlined.NotificationsActive,
+                    iconColor = nordicSun,
+                    title = stringResource(R.string.label_identify),
+                    text = stringResource(R.string.label_identify_rationale),
+                    onConfirmClick = {
+                        showAutoConfigurationHealthServerDialog = false
+                        startAttentionTimer(node)
+                    },
+                    onDismissClick = { showAutoConfigurationHealthServerDialog = false },
+                    onDismissRequest = { showAutoConfigurationHealthServerDialog = false }
+                )
+            }
         }
         if (showExportBottomSheet) {
             ModalBottomSheet(
