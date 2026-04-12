@@ -22,7 +22,6 @@ import no.nordicsemi.android.nrfmesh.core.common.NotStarted
 import no.nordicsemi.android.nrfmesh.core.common.Sending
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelRouteKey
-import no.nordicsemi.kotlin.data.HexString
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
@@ -31,7 +30,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityGet
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityStatus
-import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.Node
@@ -69,9 +67,7 @@ internal class ModelViewModel @AssistedInject internal constructor(
                     ModelState.Success(model = model)
                 } ?: ModelState.Error(Throwable("Element containing node not found"))
             _uiState.update { state ->
-                state.copy(
-                    modelState = modelState
-                )
+                state.copy(modelState = modelState)
             }
             meshNetwork = it // update the local network instance
         }.launchIn(scope = viewModelScope)
@@ -212,12 +208,6 @@ internal class ModelViewModel @AssistedInject internal constructor(
                     isRefreshing = false
                 )
             }
-        }
-    }
-
-    fun save() {
-        viewModelScope.launch {
-            repository.save()
         }
     }
 
