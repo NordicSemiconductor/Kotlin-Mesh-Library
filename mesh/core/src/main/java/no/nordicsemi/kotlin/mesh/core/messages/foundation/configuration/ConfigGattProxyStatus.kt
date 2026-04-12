@@ -28,5 +28,10 @@ class ConfigGattProxyStatus(val state: FeatureState) : ConfigResponse {
         override fun init(parameters: ByteArray?) = parameters
             ?.takeIf { it.size == 1 }
             ?.let { ConfigGattProxyStatus(state = FeatureState.from(it[0].toUInt().toInt())) }
+
+        /**
+         * The status reporting that the GATT Proxy feature is not supported.
+         */
+        val unsupported = ConfigGattProxyStatus(state = FeatureState.Unsupported)
     }
 }

@@ -827,19 +827,17 @@ internal class ConfigurationServerHandler : ModelEventHandler() {
 
                 is ConfigRelayGet, is ConfigRelaySet -> {
                     // Relay feature is not supported
-                    ConfigRelayStatus(
-                        state = FeatureState.Unsupported, count = 0, steps = 0u
-                    )
+                    ConfigRelayStatus.unsupported
                 }
 
                 is ConfigGattProxyGet, is ConfigGattProxySet -> {
                     // Gatt Proxy feature is not supported
-                    ConfigGattProxyStatus(state = FeatureState.Unsupported)
+                    ConfigGattProxyStatus.unsupported
                 }
 
                 is ConfigFriendGet, is ConfigFriendSet -> {
                     // Friend feature is not supported
-                    ConfigFriendStatus(state = FeatureState.Unsupported)
+                    ConfigFriendStatus.unsupported
                 }
 
                 is ConfigBeaconGet, is ConfigBeaconSet -> {

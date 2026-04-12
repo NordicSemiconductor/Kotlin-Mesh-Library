@@ -28,5 +28,10 @@ data class ConfigFriendStatus(val state: FeatureState) : ConfigResponse {
         override fun init(parameters: ByteArray?) = parameters
             ?.takeIf { it.size == 1 }
             ?.let { ConfigFriendStatus(state = FeatureState.from(it[0].toUInt().toInt())) }
+
+        /**
+         * The status reporting that the Friend feature is not supported.
+         */
+        val unsupported = ConfigFriendStatus(state = FeatureState.Unsupported)
     }
 }
