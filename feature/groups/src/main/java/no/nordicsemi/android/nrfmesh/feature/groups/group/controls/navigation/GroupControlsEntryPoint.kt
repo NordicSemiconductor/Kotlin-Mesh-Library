@@ -10,9 +10,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
-import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.GroupsListDetailSceneKey
-import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
 import no.nordicsemi.android.nrfmesh.feature.groups.group.controls.GroupControlsScreen
 import no.nordicsemi.android.nrfmesh.feature.groups.group.controls.GroupControlsViewModel
 import no.nordicsemi.kotlin.data.HexString
@@ -23,11 +21,9 @@ import kotlin.uuid.ExperimentalUuidApi
 data class GroupControlsKey(val address: HexString, val modelId: HexString) : NavKey, Parcelable
 
 @OptIn(ExperimentalUuidApi::class, ExperimentalMaterial3AdaptiveApi::class)
-internal fun EntryProviderScope<NavKey>.groupControlsEntry(appState: AppState, navigator: Navigator) {
+internal fun EntryProviderScope<NavKey>.groupControlsEntry() {
     entry<GroupControlsKey>(
-        metadata = ListDetailSceneStrategy.detailPane(
-            sceneKey = GroupsListDetailSceneKey
-        )
+        metadata = ListDetailSceneStrategy.detailPane(sceneKey = GroupsListDetailSceneKey)
     ) { key ->
         val address = key.address
         val id = key.modelId
@@ -37,9 +33,6 @@ internal fun EntryProviderScope<NavKey>.groupControlsEntry(appState: AppState, n
             it.create(key = "$address:$id")
         }
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-        GroupControlsScreen(
-            uiState = uiState,
-            send = viewModel::send
-        )
+        GroupControlsScreen(uiState = uiState, send = viewModel::send)
     }
 }
