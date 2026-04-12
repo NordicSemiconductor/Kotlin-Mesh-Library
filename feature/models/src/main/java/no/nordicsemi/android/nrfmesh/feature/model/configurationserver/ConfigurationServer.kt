@@ -237,10 +237,10 @@ private fun NetworkTransmit(
     networkTransmit: NetworkTransmit?,
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
-    var transmissions by remember {
+    var transmissions by remember(key1 = networkTransmit) {
         mutableFloatStateOf(networkTransmit?.count?.toFloat() ?: 0f)
     }
-    var interval by remember {
+    var interval by remember(key1 = networkTransmit) {
         mutableFloatStateOf(networkTransmit?.interval?.toFloat() ?: 0f)
     }
     ElevatedCardItem(
