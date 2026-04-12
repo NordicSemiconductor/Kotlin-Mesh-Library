@@ -13,6 +13,7 @@ import no.nordicsemi.android.nrfmesh.feature.application.keys.key.navigation.App
 import no.nordicsemi.android.nrfmesh.feature.application.keys.navigation.ApplicationKeysContentKey
 import no.nordicsemi.android.nrfmesh.feature.config.applicationkeys.ConfigAppKeysKey
 import no.nordicsemi.android.nrfmesh.feature.developer.navigation.DeveloperSettingsContentKey
+import no.nordicsemi.android.nrfmesh.feature.groups.group.controls.navigation.GroupControlsKey
 import no.nordicsemi.android.nrfmesh.feature.groups.group.navigation.GroupKey
 import no.nordicsemi.android.nrfmesh.feature.ivindex.navigation.IvIndexContentKey
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelKey
@@ -91,6 +92,11 @@ internal fun title(
     is GroupsKey -> context.getString(R.string.label_groups)
     is GroupKey -> network.group(address = key.address.toUShort(radix = 16))?.name
         ?: context.getString(R.string.label_unknown)
+
+    is GroupControlsKey -> if (isCompactWidth) {
+        network.group(address = key.address.toUShort(radix = 16))?.name
+            ?: context.getString(R.string.label_unknown)
+    } else context.getString(R.string.label_groups)
 
     is ProxyKey -> context.getString(R.string.label_proxy)
     is SettingsKey -> context.getString(R.string.label_settings)
