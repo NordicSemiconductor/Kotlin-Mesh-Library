@@ -1,8 +1,7 @@
 package no.nordicsemi.kotlin.mesh.core.messages.health
 
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
-import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessageInitializer
-import no.nordicsemi.kotlin.mesh.core.messages.HasOpCode
+import no.nordicsemi.kotlin.mesh.core.messages.HealthMessageInitializer
 
 /**
  * A Health Attention Get is an acknowledged message used to get the current
@@ -21,7 +20,7 @@ class HealthAttentionGet: AcknowledgedMeshMessage {
     override val responseOpCode: UInt = HealthAttentionStatus.opCode
     override val parameters = null
 
-    companion object Initializer : BaseMeshMessageInitializer, HasOpCode {
+    companion object Initializer : HealthMessageInitializer {
         override val opCode = 0x8004u
 
         override fun init(parameters: ByteArray?) = parameters

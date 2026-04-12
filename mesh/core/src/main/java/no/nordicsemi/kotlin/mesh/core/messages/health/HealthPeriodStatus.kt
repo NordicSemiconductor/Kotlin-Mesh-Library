@@ -2,8 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages.health
 
-import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessageInitializer
-import no.nordicsemi.kotlin.mesh.core.messages.HasOpCode
+import no.nordicsemi.kotlin.mesh.core.messages.HealthMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 
@@ -25,7 +24,7 @@ class HealthPeriodStatus(
 
     override fun toString() = "HealthPeriodStatus(fastPeriodDivisor: $fastPeriodDivisor)"
 
-    companion object Initializer : BaseMeshMessageInitializer, HasOpCode {
+    companion object Initializer : HealthMessageInitializer {
         override val opCode = 0x8037u
 
         override fun init(parameters: ByteArray?) = parameters

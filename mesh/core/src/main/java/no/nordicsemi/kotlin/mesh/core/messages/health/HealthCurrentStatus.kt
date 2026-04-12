@@ -4,8 +4,7 @@ package no.nordicsemi.kotlin.mesh.core.messages.health
 
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.toByteArray
-import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessageInitializer
-import no.nordicsemi.kotlin.mesh.core.messages.HasOpCode
+import no.nordicsemi.kotlin.mesh.core.messages.HealthMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import java.nio.ByteOrder
 
@@ -32,7 +31,7 @@ class HealthCurrentStatus(
     override fun toString() = "HealthCurrentStatus(testId: $testId, " +
             "companyIdentifier: $companyIdentifier, faults: $faults)"
 
-    companion object Initializer : BaseMeshMessageInitializer, HasOpCode {
+    companion object Initializer : HealthMessageInitializer {
         override val opCode = 0x04u
 
         override fun init(parameters: ByteArray?) = parameters

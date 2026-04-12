@@ -5,8 +5,7 @@ package no.nordicsemi.kotlin.mesh.core.messages.health
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
-import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessageInitializer
-import no.nordicsemi.kotlin.mesh.core.messages.HasOpCode
+import no.nordicsemi.kotlin.mesh.core.messages.HealthMessageInitializer
 import java.nio.ByteOrder
 
 /**
@@ -26,7 +25,7 @@ class HealthFaultTest(
 
     override fun toString() = "HealthFaultTest(testId: $testId, companyIdentifier: $companyIdentifier)"
 
-    companion object Initializer : BaseMeshMessageInitializer, HasOpCode {
+    companion object Initializer : HealthMessageInitializer {
         override val opCode = 0x8032u
 
         override fun init(parameters: ByteArray?) = parameters

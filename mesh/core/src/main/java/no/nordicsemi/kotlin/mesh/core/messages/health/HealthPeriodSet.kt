@@ -3,8 +3,7 @@
 package no.nordicsemi.kotlin.mesh.core.messages.health
 
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
-import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessageInitializer
-import no.nordicsemi.kotlin.mesh.core.messages.HasOpCode
+import no.nordicsemi.kotlin.mesh.core.messages.HealthMessageInitializer
 
 /**
  * A Health Period Set is an acknowledged message used to set the current Health Fast Period Divisor
@@ -32,7 +31,7 @@ class HealthPeriodSet(
 
     override fun toString() = "HealthPeriodSet(fastPeriodDivisor: $fastPeriodDivisor)"
 
-    companion object Initializer : BaseMeshMessageInitializer, HasOpCode {
+    companion object Initializer : HealthMessageInitializer {
         override val opCode = 0x8035u
 
         override fun init(parameters: ByteArray?) = parameters

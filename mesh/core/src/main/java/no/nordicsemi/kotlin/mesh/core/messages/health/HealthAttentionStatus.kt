@@ -2,8 +2,7 @@
 
 package no.nordicsemi.kotlin.mesh.core.messages.health
 
-import no.nordicsemi.kotlin.mesh.core.messages.BaseMeshMessageInitializer
-import no.nordicsemi.kotlin.mesh.core.messages.HasOpCode
+import no.nordicsemi.kotlin.mesh.core.messages.HealthMessageInitializer
 import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import kotlin.time.Duration
@@ -57,7 +56,7 @@ class HealthAttentionStatus(
 
     override fun toString() = "HealthAttentionStatus(attentionTimer: $attentionTimer)"
 
-    companion object Initializer: BaseMeshMessageInitializer, HasOpCode {
+    companion object Initializer: HealthMessageInitializer {
         override val opCode = 0x8007u
 
         override fun init(parameters: ByteArray?) = parameters
