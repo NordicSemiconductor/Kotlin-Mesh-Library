@@ -141,10 +141,10 @@ private fun RelayFeature(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var retransmissions by remember {
+    var retransmissions by remember(key1 = relayRetransmit) {
         mutableFloatStateOf(relayRetransmit?.count?.toFloat() ?: 0f)
     }
-    var interval by remember {
+    var interval by remember(key1 = relayRetransmit) {
         mutableFloatStateOf(relayRetransmit?.interval?.toFloat() ?: 0f)
     }
     ElevatedCardItem(
