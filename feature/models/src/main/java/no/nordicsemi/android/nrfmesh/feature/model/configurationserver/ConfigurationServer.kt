@@ -312,7 +312,7 @@ private fun NetworkTransmit(
                         )
                     )
                 },
-                enabled = !messageState.isInProgress()
+                enabled = transmissions > 0 && !messageState.isInProgress()
             )
         }
     )
