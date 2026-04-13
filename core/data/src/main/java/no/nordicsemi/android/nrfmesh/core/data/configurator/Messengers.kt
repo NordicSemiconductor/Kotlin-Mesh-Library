@@ -21,7 +21,6 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.name
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
-import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
@@ -68,6 +67,7 @@ class Messengers(
 
     fun messenger(uuid: Uuid) = _messengers[uuid]
 
+    @Suppress("unused")
     fun removeMessenger(nodeUuid: Uuid) {
         _messengers.remove(nodeUuid)
     }
@@ -492,13 +492,13 @@ class Messenger(
                     node = newNode,
                     initialTtl = null
                 )?.let {
-                    if (it is ConfigStatusMessage) {
-                        tempTask = when (it.isSuccess) {
+                    tempTask = if (it is ConfigStatusMessage) {
+                        when (it.isSuccess) {
                             true -> tempTask.copy(status = TaskStatus.Completed)
                             else -> tempTask.copy(status = TaskStatus.Error(error = it.message))
                         }
                     } else {
-                        tempTask = tempTask.copy(status = TaskStatus.Completed)
+                        tempTask.copy(status = TaskStatus.Completed)
                     }
 
                 } ?: run { tempTask = tempTask.copy(status = TaskStatus.Skipped) }
