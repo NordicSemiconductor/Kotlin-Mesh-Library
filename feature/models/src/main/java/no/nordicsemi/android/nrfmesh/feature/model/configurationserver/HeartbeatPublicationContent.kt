@@ -124,7 +124,7 @@ internal fun HeartBeatPublicationContent(
                 enabled = !messageState.isInProgress(),
                 isOnClickActionInProgress = messageState.isInProgress()
                         && messageState.message is ConfigHeartbeatPublicationGet,
-                onClick = { send(ConfigHeartbeatSubscriptionGet()) },
+                onClick = { send(ConfigHeartbeatPublicationGet()) },
                 buttonIcon = Icons.Outlined.Download,
                 text = stringResource(R.string.label_get_state)
             )
