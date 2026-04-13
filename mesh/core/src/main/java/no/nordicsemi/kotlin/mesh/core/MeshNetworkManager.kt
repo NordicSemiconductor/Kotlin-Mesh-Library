@@ -326,9 +326,9 @@ class MeshNetworkManager(
             model.let {
                 requireNotNull(it.parentElement) {
                     logger?.e(category = LogCategory.MODEL) {
-                        "Error: Model does not belong to an Element."
+                        "Model does not belong to an Element"
                     }
-                    throw IllegalStateException("Error: Model does not belong to an Element.")
+                    throw IllegalStateException("Model does not belong to an Element")
                 }
                 it.publish?.let { publish ->
                     network?.applicationKey(index = publish.index)?.let {
