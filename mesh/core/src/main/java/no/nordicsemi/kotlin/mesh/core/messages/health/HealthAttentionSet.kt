@@ -21,7 +21,7 @@ import kotlin.time.Duration.Companion.seconds
  *
  * @property attentionTimer The current Attention Timer value, in seconds.
  */
-class HealthAttentionSetAcknowledged(
+class HealthAttentionSet(
     val attentionTimer: UByte
 ): AcknowledgedMeshMessage {
     override val opCode: UInt = Initializer.opCode
@@ -35,14 +35,14 @@ class HealthAttentionSetAcknowledged(
         get() = attentionTimer.toInt().seconds
 
     /**
-     * Creates [HealthAttentionSetAcknowledged] message with the given duration.
+     * Creates [HealthAttentionSet] message with the given duration.
      *
      * The duration will be truncated to whole seconds.
      */
     constructor(duration: Duration) : this(attentionTimer = duration.inWholeSeconds.toUByte())
 
     /**
-     * Creates [HealthAttentionSetAcknowledged] message that disables the Attention Timer.
+     * Creates [HealthAttentionSet] message that disables the Attention Timer.
      */
     constructor() : this(attentionTimer = 0u)
 
@@ -54,7 +54,7 @@ class HealthAttentionSetAcknowledged(
         override fun init(parameters: ByteArray?) = parameters
             ?.takeIf { it.size == 1 }
             ?.let { params ->
-                HealthAttentionSetAcknowledged(params[0].toUByte())
+                HealthAttentionSet(params[0].toUByte())
             }
     }
 }
