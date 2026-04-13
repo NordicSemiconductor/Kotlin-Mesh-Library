@@ -131,13 +131,13 @@ internal fun DeviceCapabilities(
         PublicKeyTypeRow(
             title = stringResource(R.string.label_public_key_type),
             subtitle = state.capabilities.publicKeyType
-                .joinToString(separator = ", ")
+                .joinToString()
                 .ifEmpty { "None" }
         )
         StaticOobTypeRow(
             title = stringResource(R.string.label_static_oob_type),
             subtitle = state.capabilities.oobTypes
-                .joinToString(separator = ", ")
+                .joinToString()
                 .ifEmpty { "None" }
         )
         OutputOobSizeRow(
@@ -147,7 +147,7 @@ internal fun DeviceCapabilities(
         OutputOobActionsRow(
             title = stringResource(R.string.label_output_oob_actions),
             subtitle = state.capabilities.outputOobActions
-                .joinToString(separator = ", ")
+                .joinToString()
                 .ifEmpty { "None" }
         )
         InputOobSizeRow(
@@ -157,7 +157,7 @@ internal fun DeviceCapabilities(
         InputOobActionsRow(
             title = stringResource(R.string.label_input_oob_actions),
             subtitle = state.capabilities.inputOobActions
-                .joinToString(separator = ", ")
+                .joinToString()
                 .ifBlank { "None" }
         )
         Spacer(modifier = Modifier.size(size = 16.dp))

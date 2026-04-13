@@ -112,7 +112,7 @@ class ConfigHeartbeatPublicationStatus(
 
     override fun toString() = "ConfigHeartbeatPublicationStatus(destination: $destination, " +
             "countLog: $countLog, periodLog: $periodLog, ttl: $ttl, features: ${
-                features.joinToString(separator = ", ")
+                features.joinToString()
             }, " + "networkKeyIndex: $networkKeyIndex, status: $status)"
 
     companion object Initializer : ConfigMessageInitializer {

@@ -91,9 +91,9 @@ class GenericDeltaSet(
         transitionParams = null
     )
 
-    override fun toString() = "GenericDeltaSet(tid: $tid, level: $delta, " +
+    override fun toString() = "GenericDeltaSet(tid: $tid, delta: $delta" +
             if (transitionTime != null && delay != null) {
-                "transitionTime: $transitionTime, delay: ${delay.toInt() * 5} ms)"
+                ", transitionTime: $transitionTime, delay: ${delay.toInt() * 5} ms)"
             } else ")"
 
     companion object Initializer : GenericMessageInitializer {

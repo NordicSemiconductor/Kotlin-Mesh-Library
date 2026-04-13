@@ -71,4 +71,10 @@ data class Publish(
         credentials = MasterSecurity,
         retransmit = Retransmit.disabled
     )
+
+    override fun toString() = when (address) {
+        is UnassignedAddress -> "Disabled"
+        else -> "Publish(address: $address, index: $index, ttl: $ttl, period: $period, " +
+                "credentials: $credentials, retransmit: $retransmit)"
+    }
 }

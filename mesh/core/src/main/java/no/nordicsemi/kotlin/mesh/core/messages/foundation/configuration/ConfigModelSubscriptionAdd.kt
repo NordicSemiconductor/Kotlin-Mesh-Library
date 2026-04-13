@@ -30,16 +30,10 @@ class ConfigModelSubscriptionAdd(
 ) : AcknowledgedConfigMessage, ConfigAnyModelAddressMessage {
     override val opCode = Initializer.opCode
     override val responseOpCode = ConfigModelSubscriptionStatus.opCode
-    override val parameters: ByteArray
-        get() {
-            val data = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                    address.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
-
-            return data.plus(elements = companyIdentifier?.let { companyIdentifier ->
-                companyIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                        modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
-            } ?: modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN))
-        }
+    override val parameters= elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+            address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+            (companyIdentifier?.toByteArray(order = ByteOrder.LITTLE_ENDIAN) ?: byteArrayOf()) +
+            modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
 
     /**
      * Convenience constructor to create a ConfigModelSubscriptionAdd message.
@@ -97,25 +91,23 @@ class ConfigModelSubscriptionAdd(
                     format = HexFormat {
                         number {
                             prefix = "0x"
-                            minLength = 4
                             upperCase = true
                         }
                     }
                 )
             }" +
-            companyIdentifier?.let {
+            if (companyIdentifier != null) {
                 ", companyIdentifier: ${
-                    it.toHexString(
+                    companyIdentifier.toHexString(
                         format = HexFormat {
                             number {
                                 prefix = "0x"
-                                minLength = 4
                                 upperCase = true
                             }
                         }
                     )
                 }"
-            } +
+            } else { "" } +
             ")"
 
     companion object Initializer : ConfigMessageInitializer {

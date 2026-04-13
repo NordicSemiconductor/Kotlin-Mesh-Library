@@ -71,7 +71,7 @@ data class Features internal constructor(
         lowPower ?: LowPower(state = FeatureState.Unsupported)
     )
 
-    override fun toString(): String = toList().joinToString(separator = ", ")
+    override fun toString(): String = toList().joinToString()
 
     internal companion object {
 
@@ -79,7 +79,7 @@ data class Features internal constructor(
          * Constructs a Features object from the given mask.
          *
          * Note: The state of the following features is unknown until the corresponding Config...Get
-         * message is sent to the node. However if the Low Power state is enabled it cannot be
+         * message is sent to the node. However, if the Low Power state is enabled it cannot be
          * disabled.
          *
          * @param mask  Raw value of the features.

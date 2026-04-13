@@ -4,7 +4,6 @@ package no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration
 
 import no.nordicsemi.kotlin.data.IntFormat
 import no.nordicsemi.kotlin.data.getInt
-import no.nordicsemi.kotlin.data.getUInt
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigMessageInitializer
@@ -17,7 +16,6 @@ import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.composition
-import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 import java.nio.ByteOrder
 
 /**
@@ -157,7 +155,7 @@ data class Page0(
                 "crpl: $minimumNumberOfReplayProtectionList, " +
                 "features: [$features], " +
                 "elements: [${elements.map {  element ->
-                    "Element(location: ${element.location}, models: ${element.models.joinToString(separator = ", ") { it.modelId.toString() }})"
+                    "Element(location: ${element.location}, models: ${element.models.joinToString { it.modelId.toString() }})"
                 }}])"
     }
 
@@ -197,7 +195,6 @@ data class Page0(
             )
             val elements = mutableListOf<Element>()
             var offset = 11
-            var elementNo = 0
             while (offset < compositionData.size) {
                 require(compositionData.size >= offset + 4) {
                     return null

@@ -21,18 +21,11 @@ data class ConfigModelPublicationGet(
     override val modelIdentifier: UShort,
     override val companyIdentifier: UShort?
 ) : AcknowledgedConfigMessage, ConfigAnyModelMessage {
-
     override val opCode: UInt = Initializer.opCode
     override val responseOpCode: UInt = ConfigModelPublicationStatus.opCode
-
-    override val parameters: ByteArray
-        get() {
-            var data = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
-            data += companyIdentifier?.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
-                ?.plus(modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN))
-                ?: modelIdentifier.toByteArray(ByteOrder.LITTLE_ENDIAN)
-            return data
-        }
+    override val parameters = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+            (companyIdentifier?.toByteArray(order = ByteOrder.LITTLE_ENDIAN) ?: byteArrayOf()) +
+            modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
 
     /**
      * Convenience constructor to create the ConfigModelPublicationGet message.
@@ -58,25 +51,23 @@ data class ConfigModelPublicationGet(
                     format = HexFormat {
                         number {
                             prefix = "0x"
-                            minLength = 4
                             upperCase = true
                         }
                     }
                 )
             }" +
-            companyIdentifier?.let {
+            if (companyIdentifier != null) {
                 ", companyIdentifier: ${
-                    it.toHexString(
+                    companyIdentifier.toHexString(
                         format = HexFormat {
                             number {
                                 prefix = "0x"
-                                minLength = 4
                                 upperCase = true
                             }
                         }
                     )
                 }"
-            } +
+            } else { "" } +
             ")"
 
     companion object Initializer : ConfigMessageInitializer {

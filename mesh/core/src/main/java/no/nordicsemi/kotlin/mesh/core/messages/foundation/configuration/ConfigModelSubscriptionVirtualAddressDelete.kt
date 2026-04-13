@@ -35,16 +35,10 @@ class ConfigModelSubscriptionVirtualAddressDelete(
 ) : AcknowledgedConfigMessage, ConfigVirtualLabelMessage, ConfigAnyModelMessage {
     override val opCode = Initializer.opCode
     override val responseOpCode = ConfigModelSubscriptionStatus.opCode
-
-    override val parameters: ByteArray
-        get() {
-            val data = elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                    virtualLabel.toByteArray()
-            return data.plus(elements = companyIdentifier?.let { companyIdentifier ->
-                companyIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
-                        modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
-            } ?: modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN))
-        }
+    override val parameters= elementAddress.address.toByteArray(order = ByteOrder.LITTLE_ENDIAN) +
+            virtualLabel.toByteArray() +
+            (companyIdentifier?.toByteArray(order = ByteOrder.LITTLE_ENDIAN) ?: byteArrayOf()) +
+            modelIdentifier.toByteArray(order = ByteOrder.LITTLE_ENDIAN)
 
     /**
      * Convenience constructor to create a ConfigModelSubscriptionVirtualAddressDelete message.

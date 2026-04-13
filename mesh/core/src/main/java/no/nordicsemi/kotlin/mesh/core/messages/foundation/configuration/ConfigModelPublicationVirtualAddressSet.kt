@@ -94,25 +94,23 @@ data class ConfigModelPublicationVirtualAddressSet(
                     format = HexFormat {
                         number {
                             prefix = "0x"
-                            minLength = 4
                             upperCase = true
                         }
                     }
                 )
             }, " +
-            companyIdentifier?.let {
+            if (companyIdentifier != null) {
                 "companyIdentifier: ${
-                    it.toHexString(
+                    companyIdentifier.toHexString(
                         format = HexFormat {
                             number {
                                 prefix = "0x"
-                                minLength = 4
                                 upperCase = true
                             }
                         }
                     )
                 }, "
-            } +
+            } else { "" } +
             "publish: $publish)"
 
     companion object Initializer : ConfigMessageInitializer {
