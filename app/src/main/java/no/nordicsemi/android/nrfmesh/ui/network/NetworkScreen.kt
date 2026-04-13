@@ -78,10 +78,8 @@ import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
 import no.nordicsemi.android.nrfmesh.viewmodel.MeshNetworkState
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkScreenUiState
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
-import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
-import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -258,16 +256,19 @@ private fun NetworkContent(
                         }
                         // On Node screen, show items for Identify and Configure.
                         val nodeUuid =
-                           (appState.navigationState.currentKey as? NodeKey)?.nodeUuid ?:
-                            appState.navigationState.currentSubStack
-                                .firstNotNullOfOrNull { (it as? NodeKey)?.nodeUuid }
-                                ?.takeIf { !isCompactWidth() }
+                            (appState.navigationState.currentKey as? NodeKey)?.nodeUuid
+                                ?: appState.navigationState.currentSubStack
+                                    .firstNotNullOfOrNull { (it as? NodeKey)?.nodeUuid }
+                                    ?.takeIf { !isCompactWidth() }
                         val node = nodeUuid?.let { network.node(Uuid.parse(it)) }
                         if (node != null) {
                             IconButton(
                                 onClick = {
-                                    val healthServerModel = node.primaryElement.models.firstOrNull { it.isHealthServer } ?: return@IconButton
-                                    val hasBoundKeys = healthServerModel.boundApplicationKeys.isNotEmpty()
+                                    val healthServerModel =
+                                        node.primaryElement.models.firstOrNull { it.isHealthServer }
+                                            ?: return@IconButton
+                                    val hasBoundKeys =
+                                        healthServerModel.boundApplicationKeys.isNotEmpty()
                                     if (hasBoundKeys) {
                                         startAttentionTimer(node)
                                     } else {
@@ -311,7 +312,7 @@ private fun NetworkContent(
                 onDismissClick = { showResetNetworkDialog = false },
                 onDismissRequest = { showResetNetworkDialog = false })
         }
-        if(importState is ImportState.Completed && importState.error != null) {
+        if (importState is ImportState.Completed && importState.error != null) {
             MeshAlertDialog(
                 icon = Icons.Outlined.Download,
                 iconColor = Color.Red,
@@ -327,10 +328,10 @@ private fun NetworkContent(
         }
         if (showAutoConfigurationHealthServerDialog) {
             val nodeUuid =
-                (appState.navigationState.currentKey as? NodeKey)?.nodeUuid ?:
-                appState.navigationState.currentSubStack
-                    .firstNotNullOfOrNull { (it as? NodeKey)?.nodeUuid }
-                    ?.takeIf { !isCompactWidth() }
+                (appState.navigationState.currentKey as? NodeKey)?.nodeUuid
+                    ?: appState.navigationState.currentSubStack
+                        .firstNotNullOfOrNull { (it as? NodeKey)?.nodeUuid }
+                        ?.takeIf { !isCompactWidth() }
             val node = nodeUuid?.let { network.node(Uuid.parse(it)) }
             if (node != null) {
                 MeshAlertDialog(
@@ -428,9 +429,7 @@ private fun DisplayDropdown(
             importNetwork(uri, context.contentResolver)
         }
     }
-    IconButton(
-        onClick = onExpandPressed
-    ) {
+    IconButton(onClick = onExpandPressed) {
         Icon(
             imageVector = Icons.Filled.MoreVert,
             contentDescription = null
@@ -447,13 +446,8 @@ private fun DisplayDropdown(
                     contentDescription = null
                 )
             },
-            text = {
-                Text(
-                    modifier = Modifier.padding(start = 16.dp),
-                    text = stringResource(R.string.label_import)
-                )
-            },
-            onClick = {
+            text = { Text(text = stringResource(R.string.label_import)) },
+            onClick = dropUnlessResumed {
                 fileLauncher.launch("application/json")
                 onDismissRequest()
             }
@@ -465,13 +459,8 @@ private fun DisplayDropdown(
                     contentDescription = null
                 )
             },
-            text = {
-                Text(
-                    modifier = Modifier.padding(start = 16.dp),
-                    text = stringResource(R.string.label_export)
-                )
-            },
-            onClick = navigateToExport
+            text = { Text(text = stringResource(R.string.label_export)) },
+            onClick = dropUnlessResumed { navigateToExport() }
         )
         DropdownMenuItem(
             leadingIcon = {
@@ -480,12 +469,7 @@ private fun DisplayDropdown(
                     contentDescription = null
                 )
             },
-            text = {
-                Text(
-                    modifier = Modifier.padding(start = 16.dp),
-                    text = stringResource(R.string.label_reset_network)
-                )
-            },
+            text = { Text(text = stringResource(R.string.label_reset_network)) },
             onClick = dropUnlessResumed { onResetNetworkClicked() }
         )
     }
