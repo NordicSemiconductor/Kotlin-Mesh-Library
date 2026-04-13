@@ -5,6 +5,7 @@ package no.nordicsemi.kotlin.mesh.core.messages.health
 import no.nordicsemi.kotlin.data.getUShort
 import no.nordicsemi.kotlin.data.toByteArray
 import no.nordicsemi.kotlin.mesh.core.messages.HealthMessageInitializer
+import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import java.nio.ByteOrder
 
@@ -21,7 +22,7 @@ class HealthCurrentStatus(
     val testId: UByte,
     val companyIdentifier: UShort,
     val faults: List<HealthFault>
-) : UnacknowledgedMeshMessage {
+) : MeshResponse, UnacknowledgedMeshMessage {
     override val opCode: UInt = Initializer.opCode
     override val parameters: ByteArray =
         byteArrayOf(testId.toByte()) +
