@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.name
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
@@ -533,9 +534,14 @@ class Messenger(
                     node = newNode,
                     initialTtl = null
                 )?.let {
-                    tempTask = when ((it as ConfigStatusMessage).isSuccess) {
-                        true -> tempTask.copy(status = TaskStatus.Completed)
-                        else -> tempTask.copy(status = TaskStatus.Error(error = it.message))
+                    tempTask = when ((it as? ConfigStatusMessage) != null) {
+                        true -> if(it.isSuccess) {
+                            tempTask.copy(status = TaskStatus.Completed)
+                        }
+                        else {
+                            tempTask.copy(status = TaskStatus.Error(error = it.message))
+                        }
+                        else -> tempTask.copy(status = TaskStatus.Completed)
                     }
                 } ?: run { tempTask = tempTask.copy(status = TaskStatus.Skipped) }
             } catch (e: Exception) {
