@@ -12,9 +12,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
  *
  * @property fastPeriodDivisor The Health Fast Period Divisor state.
  */
-class HealthPeriodStatus(
-    val fastPeriodDivisor: UByte
-) : MeshResponse, UnacknowledgedMeshMessage {
+class HealthPeriodStatus(val fastPeriodDivisor: UByte) : MeshResponse, UnacknowledgedMeshMessage {
     override val opCode: UInt = Initializer.opCode
     override val parameters: ByteArray = byteArrayOf(fastPeriodDivisor.toByte())
 

@@ -14,14 +14,19 @@ import java.nio.ByteOrder
  *
  * @property companyIdentifier 16-bit Bluetooth assigned Company Identifier.
  */
-class HealthFaultClear(
-    val companyIdentifier: UShort
-) : AcknowledgedMeshMessage {
+class HealthFaultClear(val companyIdentifier: UShort) : AcknowledgedMeshMessage {
     override val opCode: UInt = Initializer.opCode
     override val responseOpCode: UInt = HealthFaultStatus.opCode
     override val parameters: ByteArray = companyIdentifier.toByteArray(ByteOrder.LITTLE_ENDIAN)
 
-    override fun toString() = "HealthFaultClear(companyIdentifier: $companyIdentifier)"
+    override fun toString() = "HealthFaultClear(companyIdentifier: ${
+        companyIdentifier.toHexString(
+            format = HexFormat {
+                number.prefix = "0x"
+                upperCase = true
+            }
+        )
+    })"
 
     companion object Initializer : HealthMessageInitializer {
         override val opCode = 0x802Fu

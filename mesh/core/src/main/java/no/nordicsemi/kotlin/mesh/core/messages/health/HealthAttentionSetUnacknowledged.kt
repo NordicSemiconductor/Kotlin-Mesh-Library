@@ -21,9 +21,7 @@ import kotlin.time.Duration.Companion.seconds
  *
  * @property attentionTimer The current Attention Timer value, in seconds.
  */
-class HealthAttentionSetUnacknowledged(
-    val attentionTimer: UByte
-): UnacknowledgedMeshMessage {
+class HealthAttentionSetUnacknowledged(val attentionTimer: UByte): UnacknowledgedMeshMessage {
     override val opCode: UInt = Initializer.opCode
     override val parameters = byteArrayOf(attentionTimer.toByte())
 

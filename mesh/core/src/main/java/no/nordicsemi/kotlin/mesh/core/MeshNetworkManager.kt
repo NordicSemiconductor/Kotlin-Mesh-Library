@@ -37,6 +37,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNetKeyDelete
+import no.nordicsemi.kotlin.mesh.core.messages.health.HealthAttentionTimer
 import no.nordicsemi.kotlin.mesh.core.messages.proxy.ProxyConfigurationMessage
 import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
@@ -77,6 +78,8 @@ import kotlin.uuid.Uuid
  *                                    element is always the first element in the list.
  * @property incomingMeshMessages     Flow containing incoming access messages received by the local
  *                                    node.
+ * @property attentionTimer           Flow that notifies the client app about the health attention
+ *                                    timer start and stop events.
  */
 class MeshNetworkManager(
     private val storage: Storage,
@@ -116,6 +119,9 @@ class MeshNetworkManager(
         }
     val proxyFilter: ProxyFilter = ProxyFilter(scope = scope, manager = this)
 
+    val _attentionTimer = MutableSharedFlow<HealthAttentionTimer>()
+    val attentionTimer = _attentionTimer.asSharedFlow()
+
     var localElements: List<Element>
         get() = network?.localElements ?: emptyList()
         set(value) {
@@ -137,7 +143,12 @@ class MeshNetworkManager(
             // Add the required Models in the Primary Element.
             if (elements.isEmpty()) elements = elements + Element(location = Location.UNKNOWN)
 
-            elements.first().addPrimaryElementModels()
+            elements
+                .first()
+                .addPrimaryElementModels(
+                    triggerAttentionTimer = { _attentionTimer.tryEmit(value = it) },
+                    logger = logger
+                )
 
             elements.forEach { element ->
                 element.models.forEach { model ->

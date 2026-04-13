@@ -21,16 +21,23 @@ import java.nio.ByteOrder
 class HealthFaultStatus(
     val testId: UByte,
     val companyIdentifier: UShort,
-    val faults: List<HealthFault>
+    val faults: List<HealthFault> = listOf(),
 ) : MeshResponse, UnacknowledgedMeshMessage {
     override val opCode: UInt = Initializer.opCode
     override val parameters: ByteArray =
         byteArrayOf(testId.toByte()) +
-        companyIdentifier.toByteArray(ByteOrder.LITTLE_ENDIAN) +
-        ByteArray(faults.size) { i -> faults[i].code.toByte() }
+                companyIdentifier.toByteArray(ByteOrder.LITTLE_ENDIAN) +
+                ByteArray(faults.size) { i -> faults[i].code.toByte() }
 
     override fun toString() = "HealthFaultStatus(testId: $testId, " +
-            "companyIdentifier: $companyIdentifier, faults: $faults)"
+            "companyIdentifier: ${
+                companyIdentifier.toHexString(
+                    format = HexFormat {
+                        number.prefix = "0x"
+                        upperCase = true
+                    }
+                )
+            }, faults: $faults)"
 
     companion object Initializer : HealthMessageInitializer {
         override val opCode = 0x05u
@@ -41,8 +48,13 @@ class HealthFaultStatus(
                 val faultsData = params.copyOfRange(3, params.size)
                 HealthFaultStatus(
                     testId = params[0].toUByte(),
-                    companyIdentifier = params.getUShort(offset = 1, order = ByteOrder.LITTLE_ENDIAN),
-                    faults = faultsData.map { b: Byte -> HealthFault.from(b.toUByte()) }
+                    companyIdentifier = params.getUShort(
+                        offset = 1,
+                        order = ByteOrder.LITTLE_ENDIAN
+                    ),
+                    faults = faultsData.map { b: Byte ->
+                        HealthFault.from(code = b.toUByte())
+                    }
                 )
             }
     }
