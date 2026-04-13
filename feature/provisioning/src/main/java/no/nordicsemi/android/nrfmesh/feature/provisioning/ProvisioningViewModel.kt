@@ -59,7 +59,7 @@ class ProvisioningViewModel @Inject constructor(
     private var unprovisionedDevice: UnprovisionedDevice? = null
     private var selectedScanResult: ScanResult? = null
     private var selectedNode: Node? = null
-
+    private var shouldReconfigure: Boolean = false
 
     private val _uiState = MutableStateFlow(
         value = ProvisioningScreenUiState(provisionerState = Scanning)
@@ -122,7 +122,8 @@ class ProvisioningViewModel @Inject constructor(
     /**
      * Starts the provisioning process by identifying the node
      */
-    internal fun beginProvisioning() {
+    internal fun beginProvisioning(shouldReconfigure: Boolean = false) {
+        this@ProvisioningViewModel.shouldReconfigure = shouldReconfigure
         val scanResult = selectedScanResult ?: return
         viewModelScope.launch {
             val device = UnprovisionedDevice
@@ -142,6 +143,7 @@ class ProvisioningViewModel @Inject constructor(
                         identifyNode(unprovisionedDevice = device, bearer = pbGattBearer)
                     }
                 }.onCompletion {
+                    this@ProvisioningViewModel.shouldReconfigure = false
                     _uiState.update {
                         it.copy(provisionerState = Disconnected(unprovisionedDevice = device))
                     }
@@ -346,7 +348,8 @@ class ProvisioningViewModel @Inject constructor(
                 message = ConfigCompositionDataGet(page = 0x00u)
             )
         )
-        if (_uiState.value.developerSettings.alwaysReconfigure) {
+        if (_uiState.value.developerSettings.alwaysReconfigure || shouldReconfigure) {
+            shouldReconfigure = false
             selectedNode?.let {
                 messenger.enqueueReconfigurationWith(originalNode = it)
             }

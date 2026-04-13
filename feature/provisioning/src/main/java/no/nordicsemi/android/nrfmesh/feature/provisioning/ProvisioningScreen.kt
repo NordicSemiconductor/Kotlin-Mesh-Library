@@ -75,7 +75,7 @@ import kotlin.uuid.Uuid
 @Composable
 internal fun ProvisioningScreen(
     uiState: ProvisioningScreenUiState,
-    beginProvisioning: () -> Unit,
+    beginProvisioning: (Boolean) -> Unit,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningParameters, Int, Int) -> Unit,
     isValidAddress: (UShort) -> Boolean,
@@ -116,7 +116,7 @@ internal fun ProvisioningScreen(
 @Composable
 private fun ProvisionerContent(
     uiState: ProvisioningScreenUiState,
-    beginProvisioning: () -> Unit,
+    beginProvisioning: (Boolean) -> Unit,
     onNameChanged: (String) -> Unit,
     onAddressChanged: (ProvisioningParameters, Int, Int) -> Unit,
     isValidAddress: (UShort) -> Boolean,
@@ -157,7 +157,7 @@ private fun ProvisionerContent(
             if (isDeviceAlreadyProvisioned(scanResult) && !uiState.developerSettings.quickProvisioning) {
                 showReprovisionDialog = true
             } else {
-                beginProvisioning()
+                beginProvisioning(false)
                 openDeviceCapabilitiesSheet = true
             }
         }
@@ -178,7 +178,7 @@ private fun ProvisionerContent(
                 ) {
                     TextButton(
                         onClick = {
-                            beginProvisioning()
+                            beginProvisioning(true)
                             showReprovisionDialog = !showReprovisionDialog
                             openDeviceCapabilitiesSheet = true
                         },
@@ -186,7 +186,7 @@ private fun ProvisionerContent(
                     )
                     TextButton(
                         onClick = {
-                            beginProvisioning()
+                            beginProvisioning(false)
                             showReprovisionDialog = !showReprovisionDialog
                             openDeviceCapabilitiesSheet = true
                         },
