@@ -473,7 +473,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                     // Save and log only the first decoded message
                     if (newMessage == null) {
                         logger?.i(LogCategory.MODEL) {
-                            "Message received from: ${
+                            "$message received from: ${
                                 accessPdu.source.toHexString(
                                     format = HexFormat {
                                         upperCase = true
