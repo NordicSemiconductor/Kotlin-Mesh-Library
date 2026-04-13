@@ -65,7 +65,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
         if (type != PduType.MESH_BEACON) {
             // Ensure the PDU has not been handled already.
             require(networkMessageCache[incomingPdu] == null) {
-                logger?.d(LogCategory.NETWORK) { "PDU already handled." }
+                logger?.d(LogCategory.NETWORK) { "PDU already handled" }
                 return null
             }
             networkMessageCache[incomingPdu] = null
@@ -80,12 +80,12 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
                     meshNetwork = meshNetwork
                 )
                 return if (networkPdu != null) {
-                    logger?.i(LogCategory.NETWORK) { "$networkPdu received." }
+                    logger?.i(LogCategory.NETWORK) { "$networkPdu received" }
                     networkManager.lowerTransportLayer.handle(networkPdu = networkPdu)?.let {
                         ReceivedMessage(address = networkPdu.source, message = it)
                     }
                 } else {
-                    logger?.w(LogCategory.NETWORK) { "Failed to decrypt network pdu." }
+                    logger?.w(LogCategory.NETWORK) { "Failed to decrypt network pdu" }
                     null
                 }
             }
@@ -105,11 +105,11 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
                     return null
                 }
                 UnprovisionedDeviceBeaconDecoder.decode(pdu = incomingPdu)?.let {
-                    logger?.i(LogCategory.NETWORK) { "$it received." }
+                    logger?.i(LogCategory.NETWORK) { "$it received" }
                     handle(beacon = it)
                     return null
                 }
-                logger?.w(LogCategory.NETWORK) { "Failed to decrypt mesh beacon pdu." }
+                logger?.w(LogCategory.NETWORK) { "Failed to decrypt mesh beacon pdu" }
                 return null
             }
 
@@ -119,10 +119,10 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
                     pduType = type,
                     meshNetwork = meshNetwork
                 )?.let {
-                    logger?.i(LogCategory.NETWORK) { "$it received." }
+                    logger?.i(LogCategory.NETWORK) { "$it received" }
                     handle(proxyPdu = it)
                 } ?: run {
-                    logger?.w(LogCategory.NETWORK) { "Unable to decode network pdu." }
+                    logger?.w(LogCategory.NETWORK) { "Unable to decode network pdu" }
                     null
                 }
             }
@@ -158,7 +158,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             ttl = ttl
         )
         logger?.i(LogCategory.NETWORK) {
-            "Sending $networkPdu encrypted using ${networkPdu.key.name}."
+            "Sending $networkPdu (encrypted using ${networkPdu.key.name})"
         }
         // Loopback interface
         if (shouldLoopback(networkPdu = networkPdu)) {
@@ -406,7 +406,7 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             return null
         }
         logger?.i(LogCategory.NETWORK) {
-            "$controlMessage received (decrypted using key: ${controlMessage.networkKey.name})."
+            "$controlMessage received (decrypted using key: ${controlMessage.networkKey.name})"
         }
 
         return when (controlMessage.opCode) {
@@ -436,7 +436,16 @@ internal class NetworkLayer(private val networkManager: NetworkManager) {
             }
 
             else -> {
-                logger?.w(LogCategory.PROXY) { "Unknown Proxy Configuration message (opCode: ${controlMessage.opCode})" }
+                logger?.w(LogCategory.PROXY) {
+                    "Unknown Proxy Configuration message (opCode: ${
+                        controlMessage.opCode.toHexString(
+                            format = HexFormat {
+                                number.prefix = "0x"
+                                upperCase = true
+                            }
+                        )
+                    })"
+                }
                 null
             }
         }

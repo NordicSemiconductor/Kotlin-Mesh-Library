@@ -52,8 +52,33 @@ class ConfigModelSubscriptionDeleteAll(
         companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier,
     )
 
-    override fun toString() = "ConfigModelSubscriptionDeleteAll(elementAddress: $elementAddress, " +
-            "modelIdentifier: $modelIdentifier, companyIdentifier: $companyIdentifier)"
+    override fun toString() = "ConfigModelSubscriptionDeleteAll(" +
+            "elementAddress: $elementAddress, " +
+            "modelIdentifier: ${
+                modelIdentifier.toHexString(
+                    format = HexFormat {
+                        number {
+                            prefix = "0x"
+                            minLength = 4
+                            upperCase = true
+                        }
+                    }
+                )
+            }" +
+            companyIdentifier?.let {
+                ", companyIdentifier: ${
+                    it.toHexString(
+                        format = HexFormat {
+                            number {
+                                prefix = "0x"
+                                minLength = 4
+                                upperCase = true
+                            }
+                        }
+                    )
+                }"
+            } +
+            ")"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x801Du

@@ -28,8 +28,10 @@ class AddAddressesToFilter(
             return byteArray
         }
 
-    override fun toString() = "AddAddressesToFilter(opCode: $opCode, " +
-            "addresses:${addresses.joinToString(separator = ", ")})"
+    override fun toString() =
+        "AddAddressesToFilter(addresses: ${
+            addresses.joinToString(separator = ", ") { it.toHexString() }
+        })"
 
     companion object Initializer : ProxyConfigurationMessageInitializer {
         override val opCode: UByte = 0x01u

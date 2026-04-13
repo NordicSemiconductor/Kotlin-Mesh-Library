@@ -28,8 +28,8 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class)
 @Suppress("unused")
 class ConfigModelSubscriptionVirtualAddressDelete(
-    override val elementAddress: UnicastAddress,
     override val virtualLabel: Uuid,
+    override val elementAddress: UnicastAddress,
     override val modelIdentifier: UShort,
     override val companyIdentifier: UShort?,
 ) : AcknowledgedConfigMessage, ConfigVirtualLabelMessage, ConfigAnyModelMessage {
@@ -98,10 +98,34 @@ class ConfigModelSubscriptionVirtualAddressDelete(
         companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier,
     )
 
-    override fun toString() =
-        "ConfigModelSubscriptionVirtualAddressDelete(virtualLabel: $virtualLabel, " +
-                "elementAddress: $elementAddress, modelIdentifier: $modelIdentifier, " +
-                "companyIdentifier: $companyIdentifier)"
+    override fun toString() = "ConfigModelSubscriptionVirtualAddressDelete(" +
+            "virtualLabel: ${virtualLabel}, " +
+            "elementAddress: $elementAddress, " +
+            "modelIdentifier: ${
+                modelIdentifier.toHexString(
+                    format = HexFormat {
+                        number {
+                            prefix = "0x"
+                            minLength = 4
+                            upperCase = true
+                        }
+                    }
+                )
+            }" +
+            companyIdentifier?.let {
+                ", companyIdentifier: ${
+                    it.toHexString(
+                        format = HexFormat {
+                            number {
+                                prefix = "0x"
+                                minLength = 4
+                                upperCase = true
+                            }
+                        }
+                    )
+                }"
+            } +
+            ")"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8021u

@@ -120,7 +120,7 @@ internal class ModelViewModel @AssistedInject internal constructor(
             var response: ConfigNodeIdentityStatus? = null
             try {
                 keys.forEach { key ->
-                    message = ConfigNodeIdentityGet(index = key.index)
+                    message = ConfigNodeIdentityGet(networkKeyIndex = key.index)
                     _uiState.value = _uiState.value.copy(messageState = Sending(message = message))
                     response = repository.send(
                         node = element.parentNode!!,
@@ -129,7 +129,7 @@ internal class ModelViewModel @AssistedInject internal constructor(
 
                     response.let { status ->
                         val index = nodeIdentityStates.indexOfFirst { state ->
-                            state.networkKey.index == status.index
+                            state.networkKey.index == status.networkKeyIndex
                         }
                         nodeIdentityStates[index] = nodeIdentityStates[index]
                             .copy(nodeIdentityState = status.identity)
@@ -137,7 +137,7 @@ internal class ModelViewModel @AssistedInject internal constructor(
                 }
                 _uiState.value = _uiState.value.copy(
                     messageState = Completed(
-                        message = ConfigNodeIdentityGet(index = keys.first().index),
+                        message = ConfigNodeIdentityGet(networkKeyIndex = keys.first().index),
                         response = response as ConfigNodeIdentityStatus
                     ),
                     nodeIdentityStates = nodeIdentityStates.toList()

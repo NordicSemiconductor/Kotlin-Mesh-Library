@@ -17,14 +17,14 @@ import java.nio.ByteOrder
 /**
  * This message is used to add a model subscription to a group.
  *
- * @property elementAddress    Element address of the model.
  * @property address           Group address the model should subscribe to.
+ * @property elementAddress    Element address of the model.
  * @property modelIdentifier   Model identifier.
  * @property companyIdentifier Company identifier, if the model is a vendor model.
  */
 class ConfigModelSubscriptionAdd(
-    override val elementAddress: UnicastAddress,
     override val address: Address,
+    override val elementAddress: UnicastAddress,
     override val modelIdentifier: UShort,
     override val companyIdentifier: UShort?,
 ) : AcknowledgedConfigMessage, ConfigAnyModelAddressMessage {
@@ -79,35 +79,44 @@ class ConfigModelSubscriptionAdd(
         companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier,
     )
 
-    override fun toString() = "ConfigModelSubscriptionAdd(address: ${
-        address.toHexString(
-            format = HexFormat {
-                number.prefix = "0x"
-                upperCase = true
-            }
-        )
-    }, elementAddress: ${
-        elementAddress.address.toHexString(
-            format = HexFormat {
-                number.prefix = "0x"
-                upperCase = true
-            }
-        )
-    }, modelIdentifier: ${
-        modelIdentifier.toHexString(
-            format = HexFormat {
-                number.prefix = "0x"
-                upperCase = true
-            }
-        )
-    }, companyIdentifier=${
-        companyIdentifier?.toHexString(
-            format = HexFormat {
-                number.prefix = "0x"
-                upperCase = true
-            }
-        )
-    })"
+    override fun toString() = "ConfigModelSubscriptionAdd(" +
+            "address: ${
+                address.toHexString(
+                    format = HexFormat {
+                        number {
+                            prefix = "0x"
+                            minLength = 4
+                            upperCase = true
+                        }
+                    }
+                )
+            }, " +
+            "elementAddress: $elementAddress, " +
+            "modelIdentifier: ${
+                modelIdentifier.toHexString(
+                    format = HexFormat {
+                        number {
+                            prefix = "0x"
+                            minLength = 4
+                            upperCase = true
+                        }
+                    }
+                )
+            }" +
+            companyIdentifier?.let {
+                ", companyIdentifier: ${
+                    it.toHexString(
+                        format = HexFormat {
+                            number {
+                                prefix = "0x"
+                                minLength = 4
+                                upperCase = true
+                            }
+                        }
+                    )
+                }"
+            } +
+            ")"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x801Bu

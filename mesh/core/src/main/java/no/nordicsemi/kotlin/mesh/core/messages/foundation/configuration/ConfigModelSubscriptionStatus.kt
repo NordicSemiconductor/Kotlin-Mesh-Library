@@ -176,39 +176,45 @@ class ConfigModelSubscriptionStatus(
     )
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "ConfigModelSubscriptionStatus(status: $status, " +
-            "elementAddress: ${
-                elementAddress.address.toHexString(
-                    format = HexFormat {
-                        number.prefix = "0x"
-                        upperCase = true
-                    }
-                )
-            }, " +
+    override fun toString() = "ConfigModelSubscriptionStatus(" +
+            "status: $status, " +
             "address: ${
                 address.toHexString(
                     format = HexFormat {
-                        number.prefix = "0x"
-                        upperCase = true
+                        number {
+                            prefix = "0x"
+                            minLength = 4
+                            upperCase = true
+                        }
                     }
                 )
             }, " +
+            "elementAddress: $elementAddress, " +
             "modelIdentifier: ${
                 modelIdentifier.toHexString(
                     format = HexFormat {
-                        number.prefix = "0x"
-                        upperCase = true
+                        number {
+                            prefix = "0x"
+                            minLength = 4
+                            upperCase = true
+                        }
                     }
                 )
-            }, " +
-            "companyIdentifier: ${
-                companyIdentifier?.toHexString(
-                    format = HexFormat {
-                        number.prefix = "0x"
-                        upperCase = true
-                    }
-                )
-            })"
+            }" +
+            companyIdentifier?.let {
+                ", companyIdentifier: ${
+                    it.toHexString(
+                        format = HexFormat {
+                            number {
+                                prefix = "0x"
+                                minLength = 4
+                                upperCase = true
+                            }
+                        }
+                    )
+                }"
+            } +
+            ")"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x801Fu

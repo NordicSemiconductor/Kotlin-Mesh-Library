@@ -51,6 +51,34 @@ data class ConfigModelPublicationGet(
         companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier
     )
 
+    override fun toString() = "ConfigModelPublicationGet(" +
+            "elementAddress: ${elementAddress.address}, " +
+            "modelIdentifier: ${
+                modelIdentifier.toHexString(
+                    format = HexFormat {
+                        number {
+                            prefix = "0x"
+                            minLength = 4
+                            upperCase = true
+                        }
+                    }
+                )
+            }" +
+            companyIdentifier?.let {
+                ", companyIdentifier: ${
+                    it.toHexString(
+                        format = HexFormat {
+                            number {
+                                prefix = "0x"
+                                minLength = 4
+                                upperCase = true
+                            }
+                        }
+                    )
+                }"
+            } +
+            ")"
+
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x8018u
 

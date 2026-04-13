@@ -28,6 +28,10 @@ import kotlin.experimental.or
 /**
  * This message is used to set the publication state of a model.
  *
+ * @property status                Status of the request.
+ * @property companyIdentifier     The company identifier, as registered at Bluetooth SIG.
+ * @property modelIdentifier       The model identifier.
+ * @property elementAddress        The target element address.
  * @property publish               Contains the publication state.
  */
 class ConfigModelPublicationStatus(
@@ -116,9 +120,34 @@ class ConfigModelPublicationStatus(
         publish = request.publish
     )
 
-    override fun toString() = "ConfigModelPublicationStatus(status: $status, publish: $publish, " +
-            "elementAddress: $elementAddress, modelIdentifier: $modelIdentifier, " +
-            "companyIdentifier: $companyIdentifier)"
+    override fun toString() = "ConfigModelPublicationStatus(" +
+            "status: $status, " +
+            "elementAddress: ${elementAddress.address}, " +
+            "modelIdentifier: ${
+                modelIdentifier.toHexString(
+                    format = HexFormat {
+                        number {
+                            prefix = "0x"
+                            minLength = 4
+                            upperCase = true
+                        }
+                    }
+                )
+            }, " +
+            companyIdentifier?.let {
+                "companyIdentifier: ${
+                    it.toHexString(
+                        format = HexFormat {
+                            number {
+                                prefix = "0x"
+                                minLength = 4
+                                upperCase = true
+                            }
+                        }
+                    )
+                }, "
+            } +
+            "publish: $publish)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode: UInt = 0x8019u

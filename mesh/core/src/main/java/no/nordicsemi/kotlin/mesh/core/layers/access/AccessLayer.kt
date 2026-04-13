@@ -210,11 +210,11 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                 context.invalidate()
             }
             logger?.i(LogCategory.ACCESS) {
-                "Response $accessPdu received (decrypted using key: $keySet)."
+                "Response $accessPdu received (decrypted using key: $keySet)"
             }
         } else {
             logger?.i(LogCategory.ACCESS) {
-                "$accessPdu received (decrypted using key: $keySet)."
+                "$accessPdu received (decrypted using key: $keySet)"
             }
         }
         return handle(accessPdu = accessPdu, keySet = keySet, request = request)
@@ -330,7 +330,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                         number.prefix = "0x"
                     }
                 )
-            })"
+            }"
         }
         val pdu = AccessPdu.init(
             message = message,
@@ -493,7 +493,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                         // If another model's delegate decoded the same message to a different type,
                         // log this with a warning. This other type will be delivered to the
                         // delegate, but not to the global network delegate.
-                        logger?.w(LogCategory.MODEL) { "$message already decoded as $newMessage." }
+                        logger?.w(LogCategory.MODEL) { "$message already decoded as $newMessage" }
                     }
                     // Deliver the message to the Model if it was signed with an Application Key
                     // bound to this Model and the message is targeting this Element, or the
@@ -701,7 +701,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
             timeout = timeout,
             timeoutBlock = {
                 logger?.w(LogCategory.ACCESS) {
-                    "Response to $pdu not received (timed out)."
+                    "Response to $pdu not received (timed out)"
                 }
                 val category = if (request is AcknowledgedConfigMessage)
                     LogCategory.FOUNDATION_MODEL
@@ -721,7 +721,7 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
                                 upperCase = true
                             }
                         )
-                    } timed out."
+                    } timed out"
                 }
                 scope.launch {
                     cancel(
@@ -824,5 +824,5 @@ private suspend fun ModelEventHandler.onMeshMessageReceived(
         )
     )
 
-    else -> error("$message is neither Acknowledged nor Unacknowledged.")
+    else -> error("$message is neither Acknowledged nor Unacknowledged")
 }

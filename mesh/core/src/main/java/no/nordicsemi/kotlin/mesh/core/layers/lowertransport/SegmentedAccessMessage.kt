@@ -83,14 +83,7 @@ internal class SegmentedAccessMessage(
             }, " +
             "szmic: ${if (transportMicSize == 4.toUByte()) 0 else 1}, " +
             "seqZero: $sequenceZero, segO: $segmentOffset, segN: $lastSegmentNumber " +
-            "data: ${
-                upperTransportPdu.toHexString(
-                    format = HexFormat {
-                        number.prefix = "0x"
-                        upperCase = true
-                    }
-                )
-            })"
+            "data: 0x${upperTransportPdu.toHexString(format = HexFormat.UpperCase)})"
 
     internal companion object {
 

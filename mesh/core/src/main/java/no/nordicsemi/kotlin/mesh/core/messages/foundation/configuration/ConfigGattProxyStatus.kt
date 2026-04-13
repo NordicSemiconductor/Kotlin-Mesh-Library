@@ -20,7 +20,7 @@ class ConfigGattProxyStatus(val state: FeatureState) : ConfigResponse {
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString() =
-        "ConfigGattProxyStatus(opCode: 0x${opCode.toHexString()}, state: $state)"
+        "ConfigGattProxyStatus(state: $state)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8014u

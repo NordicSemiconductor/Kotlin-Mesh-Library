@@ -45,7 +45,7 @@ class ConfigCompositionDataStatus(val page: CompositionDataPage) : ConfigRespons
     override val opCode: UInt = Initializer.opCode
     override val parameters: ByteArray? = page.parameters
 
-    override fun toString() = "ConfigCompositionDataStatus(opCode: $opCode, page: $page)"
+    override fun toString() = "ConfigCompositionDataStatus(page: $page)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x02u
@@ -120,26 +120,45 @@ data class Page0(
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String {
         return "Page0(" +
-                "page:$page, " +
-                "companyIdentifier: ${CompanyIdentifier.name(id = companyIdentifier)}" +
-                "), productIdentifier: ${
+                "page: $page, " +
+                "cid: ${
+                    companyIdentifier.toHexString(
+                        format = HexFormat {
+                            number {
+                                prefix = "0x"
+                                minLength = 4
+                                upperCase = true
+                            }
+                        }
+                    )
+                }, " +
+                "pid: ${
                     productIdentifier.toHexString(
                         format = HexFormat {
-                            number.prefix = "0x"
-                            upperCase = true
+                            number {
+                                prefix = "0x"
+                                minLength = 4
+                                upperCase = true
+                            }
                         }
                     )
                 }, " +
-                "versionIdentifier: ${
+                "vid: ${
                     versionIdentifier.toHexString(
                         format = HexFormat {
-                            number.prefix = "0x"
-                            upperCase = true
+                            number {
+                                prefix = "0x"
+                                minLength = 4
+                                upperCase = true
+                            }
                         }
                     )
                 }, " +
-                "minimumNumberOfReplayProtectionList: $minimumNumberOfReplayProtectionList, " +
-                "features: $features, elements: $elements)"
+                "crpl: $minimumNumberOfReplayProtectionList, " +
+                "features: [$features], " +
+                "elements: [${elements.map {  element ->
+                    "Element(location: ${element.location}, models: ${element.models.joinToString(separator = ", ") { it.modelId.toString() }})"
+                }}])"
     }
 
     companion object {

@@ -22,8 +22,8 @@ import java.nio.ByteOrder
  * @property companyIdentifier Company identifier, if the model is a vendor model.
  */
 class ConfigModelSubscriptionDelete(
-    override val elementAddress: UnicastAddress,
     override val address: Address,
+    override val elementAddress: UnicastAddress,
     override val modelIdentifier: UShort,
     override val companyIdentifier: UShort?,
 ) : AcknowledgedConfigMessage, ConfigAnyModelAddressMessage {
@@ -78,11 +78,44 @@ class ConfigModelSubscriptionDelete(
     )
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "ConfigModelSubscriptionDelete(address: " +
-            "${address.toHexString(format = HexFormat.UpperCase)}, " +
-            "elementAddress: ${elementAddress.toHexString()}, " +
-            "modelIdentifier: $modelIdentifier, " +
-            "companyIdentifier: $companyIdentifier)"
+    override fun toString() = "ConfigModelSubscriptionDelete(" +
+            "address: ${
+                address.toHexString(
+                    format = HexFormat {
+                        number {
+                            prefix = "0x"
+                            minLength = 4
+                            upperCase = true
+                        }
+                    }
+                )
+            }, " +
+            "elementAddress: $elementAddress, " +
+            "modelIdentifier: ${
+                modelIdentifier.toHexString(
+                    format = HexFormat {
+                        number {
+                            prefix = "0x"
+                            minLength = 4
+                            upperCase = true
+                        }
+                    }
+                )
+            }" +
+            companyIdentifier?.let {
+                ", companyIdentifier: ${
+                    it.toHexString(
+                        format = HexFormat {
+                            number {
+                                prefix = "0x"
+                                minLength = 4
+                                upperCase = true
+                            }
+                        }
+                    )
+                }"
+            } +
+            ")"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x801Cu

@@ -69,9 +69,7 @@ data class ConfigRelayStatus(
         require(steps in 0u..31u) { "Steps must be in range 0..31" }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "ConfigRelayStatus(opCode: 0x${opCode.toHexString()}, " +
-            "state: $state, count: $count, steps: $steps)"
+    override fun toString() = "ConfigRelayStatus(state: $state, count: $count, steps: $steps)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8028u

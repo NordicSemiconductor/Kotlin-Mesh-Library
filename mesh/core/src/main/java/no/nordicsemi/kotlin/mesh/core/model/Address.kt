@@ -59,14 +59,18 @@ sealed interface HasAddress {
 sealed class MeshAddress : HasAddress {
     abstract override val address: Address
 
-    override fun toString(): String {
-        return toHexString()
-    }
+    override fun toString(): String = toHexString()
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toHexString(): HexString = address
-        .toByteArray()
-        .toHexString(format = HexFormat.UpperCase)
+    override fun toHexString(): HexString = address.toHexString(
+        HexFormat {
+            number {
+                prefix = "0x"
+                minLength = 4
+                upperCase = true
+            }
+        }
+    )
 
     companion object {
 

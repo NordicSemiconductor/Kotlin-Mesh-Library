@@ -103,7 +103,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                         .init(pdu = networkPdu)
                         ?.let {
                             logger?.i(LogCategory.LOWER_TRANSPORT) {
-                                "$it received (decrypted using key: ${it.networkKey.name})."
+                                "$it received (decrypted using key: ${it.networkKey.name})"
                             }
                             assemble(segment = it, networkPdu = networkPdu)?.let { pdu ->
                                 msg = Message.LowerTransportLayerPdu(pdu)
@@ -114,7 +114,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                         .init(pdu = networkPdu)
                         .let {
                             logger?.i(LogCategory.LOWER_TRANSPORT) {
-                                "$it received (decrypted using key: ${it.networkKey.name})."
+                                "$it received (decrypted using key: ${it.networkKey.name})"
                             }
                             assemble(it, networkPdu)?.let { pdu ->
                                 msg = Message.LowerTransportLayerPdu(message = pdu)
@@ -127,7 +127,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                         .init(pdu = networkPdu)
                         .let {
                             logger?.i(LogCategory.LOWER_TRANSPORT) {
-                                "$it received (decrypted using key: ${it.networkKey.name})."
+                                "$it received (decrypted using key: ${it.networkKey.name})"
                             }
                             msg = Message.LowerTransportLayerPdu(it)
                         }
@@ -138,7 +138,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                             true -> {
                                 val ack = SegmentAcknowledgementMessage.init(networkPdu)
                                 logger?.i(LogCategory.LOWER_TRANSPORT) {
-                                    "$ack received (decrypted using key: ${ack.networkKey.name})."
+                                    "$ack received (decrypted using key: ${ack.networkKey.name})"
                                 }
                                 Message.Acknowledgement(ack)
                             }
@@ -148,7 +148,7 @@ internal class LowerTransportLayer(private val networkManager: NetworkManager) {
                                 logger?.i(LogCategory.LOWER_TRANSPORT) {
                                     "$controlMessage received (decrypted using key: ${
                                         controlMessage.networkKey.name
-                                    })."
+                                    })"
                                 }
                                 Message.LowerTransportLayerPdu(controlMessage)
                             }

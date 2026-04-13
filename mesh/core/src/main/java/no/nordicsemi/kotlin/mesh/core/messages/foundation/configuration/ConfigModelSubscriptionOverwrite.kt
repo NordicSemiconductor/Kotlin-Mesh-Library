@@ -16,14 +16,14 @@ import java.nio.ByteOrder
 /**
  * This message is used to override a subscription of a model.
  *
- * @property elementAddress    Element address of the model.
  * @property address           Group address to be overwritten in subscriptions.
+ * @property elementAddress    Element address of the model.
  * @property modelIdentifier   Model identifier.
  * @property companyIdentifier Company identifier, if the model is a vendor model.
  */
 class ConfigModelSubscriptionOverwrite(
-    override val elementAddress: UnicastAddress,
     override val address: Address,
+    override val elementAddress: UnicastAddress,
     override val modelIdentifier: UShort,
     override val companyIdentifier: UShort?,
 ) : AcknowledgedConfigMessage, ConfigAnyModelAddressMessage {
@@ -60,9 +60,44 @@ class ConfigModelSubscriptionOverwrite(
         companyIdentifier = (model.modelId as? VendorModelId)?.companyIdentifier,
     )
 
-    override fun toString() = "ConfigModelSubscriptionOverwrite(elementAddress: $elementAddress, " +
-            "address: $address, modelIdentifier: $modelIdentifier, " +
-            "companyIdentifier: $companyIdentifier)"
+    override fun toString() = "ConfigModelSubscriptionOverwrite(" +
+            "address: ${
+                address.toHexString(
+                    format = HexFormat {
+                        number {
+                            prefix = "0x"
+                            minLength = 4
+                            upperCase = true
+                        }
+                    }
+                )
+            }, " +
+            "elementAddress: $elementAddress, " +
+            "modelIdentifier: ${
+                modelIdentifier.toHexString(
+                    format = HexFormat {
+                        number {
+                            prefix = "0x"
+                            minLength = 4
+                            upperCase = true
+                        }
+                    }
+                )
+            }" +
+            companyIdentifier?.let {
+                ", companyIdentifier: ${
+                    it.toHexString(
+                        format = HexFormat {
+                            number {
+                                prefix = "0x"
+                                minLength = 4
+                                upperCase = true
+                            }
+                        }
+                    )
+                }"
+            } +
+            ")"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x801Eu

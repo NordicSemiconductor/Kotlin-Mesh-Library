@@ -14,7 +14,7 @@ class HealthPeriodGet : AcknowledgedMeshMessage {
     override val responseOpCode: UInt = HealthPeriodStatus.opCode
     override val parameters: ByteArray? = null
 
-    override fun toString() = "HealthPeriodGet()"
+    override fun toString() = "HealthPeriodGet"
 
     companion object Initializer : HealthMessageInitializer {
         override val opCode = 0x8034u

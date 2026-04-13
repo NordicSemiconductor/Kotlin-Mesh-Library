@@ -30,8 +30,8 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class)
 @Suppress("unused")
 class ConfigModelSubscriptionVirtualAddressAdd(
-    override val elementAddress: UnicastAddress,
     override val virtualLabel: Uuid,
+    override val elementAddress: UnicastAddress,
     override val modelIdentifier: UShort,
     override val companyIdentifier: UShort?,
 ) : AcknowledgedConfigMessage, ConfigVirtualLabelMessage, ConfigAnyModelMessage {
@@ -104,9 +104,32 @@ class ConfigModelSubscriptionVirtualAddressAdd(
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString() = "ConfigModelSubscriptionVirtualAddressAdd(" +
             "virtualLabel: ${virtualLabel}, " +
-            "elementAddress: ${elementAddress.toHexString()}, " +
-            "modelIdentifier: ${modelIdentifier.toHexString()}, " +
-            "companyIdentifier: ${companyIdentifier?.toHexString()})"
+            "elementAddress: $elementAddress, " +
+            "modelIdentifier: ${
+                modelIdentifier.toHexString(
+                    format = HexFormat {
+                        number {
+                            prefix = "0x"
+                            minLength = 4
+                            upperCase = true
+                        }
+                    }
+                )
+            }" +
+            companyIdentifier?.let {
+                ", companyIdentifier: ${
+                    it.toHexString(
+                        format = HexFormat {
+                            number {
+                                prefix = "0x"
+                                minLength = 4
+                                upperCase = true
+                            }
+                        }
+                    )
+                }"
+            } +
+            ")"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8020u

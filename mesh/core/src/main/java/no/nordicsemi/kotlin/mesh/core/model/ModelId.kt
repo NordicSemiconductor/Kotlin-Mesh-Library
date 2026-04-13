@@ -6,6 +6,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.data.HexString
 import no.nordicsemi.kotlin.mesh.core.model.serialization.ModelIdSerializer
+import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 
 /**
  * Represents Model ID of a Bluetooth mesh model.
@@ -73,7 +74,17 @@ class SigModelId(
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String =
-        "SigModelId(modelIdentifier: ${modelIdentifier.toHexString(format = HexFormat.UpperCase)})"
+        "SigModelId(${
+            modelIdentifier.toHexString(
+                format = HexFormat {
+                    number {
+                        prefix = "0x"
+                        minLength = 4
+                        removeLeadingZeros = true
+                    }
+                }
+            )
+        })"
 
     override fun equals(other: Any?): Boolean {
         if (other !is SigModelId)
@@ -116,9 +127,28 @@ class VendorModelId(
 
     @OptIn(ExperimentalStdlibApi::class)
     override fun toString(): String {
-        return "VendorModelId(" +
-                "modelIdentifier: ${modelIdentifier.toHexString(format = HexFormat.UpperCase)}, " +
-                "companyIdentifier: ${companyIdentifier.toHexString(format = HexFormat.UpperCase)})"
+        return "VendorModelId(${
+                    modelIdentifier.toHexString(
+                        format = HexFormat {
+                            number {
+                                prefix = "0x"
+                                minLength = 4
+                                upperCase = true
+                            }
+                        }
+                    )
+                }, " +
+                "companyIdentifier: ${
+                    companyIdentifier.toHexString(
+                        format = HexFormat {
+                            number {
+                                prefix = "0x"
+                                minLength = 4
+                                upperCase = true
+                            }
+                        }
+                    )
+                })"
     }
 
     override fun equals(other: Any?): Boolean {
