@@ -7,6 +7,7 @@ import no.nordicsemi.kotlin.mesh.core.ModelError
 import no.nordicsemi.kotlin.mesh.core.ModelEvent
 import no.nordicsemi.kotlin.mesh.core.ModelEventHandler
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
+import no.nordicsemi.kotlin.mesh.core.messages.ConfigModelAppList
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigModelSubscriptionList
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigNetKeyMessage
 import no.nordicsemi.kotlin.mesh.core.messages.HasInitializer
@@ -68,7 +69,6 @@ import no.nordicsemi.kotlin.mesh.core.model.Relay
 import no.nordicsemi.kotlin.mesh.core.model.RelayRetransmit
 import no.nordicsemi.kotlin.mesh.core.model.SubscriptionAddress
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
-import kotlin.run
 
 /**
  * ConfigurationClientHandler class handles the configuration messages sent from the provisioner
@@ -188,12 +188,21 @@ internal class ConfigurationClientHandler() : ModelEventHandler() {
             is ConfigModelAppStatus -> if (response.isSuccess) {
                 node(address = source)
                     ?.element(address = response.elementAddress)
-                    ?.model(modelId = response.modelId)?.let {
+                    ?.model(modelId = response.modelId)
+                    ?.let {
                         when (request) {
                             is ConfigModelAppBind -> it.bind(index = request.applicationKeyIndex)
                             is ConfigModelAppUnbind -> it.unbind(index = request.applicationKeyIndex)
                         }
                     }
+            }
+
+            is ConfigModelAppList -> if (response.isSuccess) {
+                node(address = source)
+                    ?.element(address = response.elementAddress)
+                    ?.model(modelId = response.modelId)
+                    ?.bind(indexes = response.applicationKeyIndexes)
+                    .also { updateTimestamp() }
             }
 
             is ConfigModelPublicationStatus -> if (response.isSuccess) {
