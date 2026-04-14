@@ -550,6 +550,16 @@ class Model internal constructor(
     }
 
     /**
+     * Assigns the application keys bound to this Model. This is invoked when handling
+     * ConfigModelAppList messages
+     *
+     * @param indexes bound application key indexes
+     */
+    internal fun bind(indexes: List<KeyIndex>) {
+        _bind = indexes.toMutableList()
+    }
+
+    /**
      * Unbinds the given application key index from a model and clears any publication that was using
      * the same key.
      *
