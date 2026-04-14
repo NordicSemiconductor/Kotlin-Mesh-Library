@@ -6,7 +6,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import no.nordicsemi.kotlin.data.HexString
 import no.nordicsemi.kotlin.mesh.core.model.serialization.ModelIdSerializer
-import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
 
 /**
  * Represents Model ID of a Bluetooth mesh model.
@@ -42,20 +41,18 @@ sealed class ModelId {
          * Converts a [HexString] encoded model ID to a [ModelId].
          *
          * @return [ModelId] instance.
-         * @throws IllegalArgumentException If the model ID is invalid.
          */
-        @Throws(IllegalArgumentException::class)
-        fun HexString.decode(): ModelId = runCatching {
-            this.toUInt(radix = 16).let { modelId ->
-                when (modelId and 0xFFFF0000u) {
-                    0u -> SigModelId(modelIdentifier = modelId.toUShort())
-                    else -> VendorModelId(id = modelId)
-                }
-            }
-        }.getOrElse {
-            throw IllegalArgumentException(
-                "Error while deserializing model id $this", it
-            )
+        @Throws(NumberFormatException::class)
+        fun HexString.decode(): ModelId = toUInt(radix = 16).decode()
+
+        /**
+         * Converts a [UInt] encoded model ID to a [ModelId].
+         *
+         * @return [ModelId] instance.
+         */
+        fun UInt.decode(): ModelId = when (this and 0xFFFF0000u) {
+            0u -> SigModelId(modelIdentifier = this.toUShort())
+            else -> VendorModelId(id = this)
         }
     }
 }

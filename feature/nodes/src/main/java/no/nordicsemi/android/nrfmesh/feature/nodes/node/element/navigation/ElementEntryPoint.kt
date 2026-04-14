@@ -16,11 +16,11 @@ import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelKey
 import no.nordicsemi.android.nrfmesh.feature.model.navigation.modelEntry
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.element.ElementScreen
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.element.ElementViewModel
-import no.nordicsemi.kotlin.data.HexString
+import no.nordicsemi.kotlin.mesh.core.model.Address
 import kotlin.uuid.ExperimentalUuidApi
 
 @Serializable
-data class ElementKey(val address: HexString) : NavKey
+data class ElementKey(val address: Address) : NavKey
 
 @OptIn(ExperimentalUuidApi::class, ExperimentalMaterial3AdaptiveApi::class)
 fun EntryProviderScope<NavKey>.elementEntry(appState: AppState, navigator: Navigator) {
@@ -30,18 +30,18 @@ fun EntryProviderScope<NavKey>.elementEntry(appState: AppState, navigator: Navig
         )
     ) { key ->
         val address = key.address
-        val viewModel = hiltViewModel<ElementViewModel, ElementViewModel.Factory>(key = address) {
-            it.create(address = address)
+        val viewModel = hiltViewModel<ElementViewModel, ElementViewModel.Factory> {
+            it.create(address = address.toInt())
         }
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         ElementScreen(
             elementState = uiState.elementState,
             highlightSelectedItem = !isCompactWidth() && appState.navigationState.currentKey is ModelKey,
-            navigateToModel = {
+            navigateToModel = { model ->
                 navigator.navigate(
                     key = ModelKey(
                         address = address,
-                        modelId = it.modelId.id.toHexString()
+                        modelId = model.modelId.id
                     )
                 )
             },

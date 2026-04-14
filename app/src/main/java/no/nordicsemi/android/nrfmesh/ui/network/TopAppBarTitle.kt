@@ -70,32 +70,30 @@ internal fun title(
         ?: context.getString(R.string.label_unknown)
 
     is ElementKey -> if (isCompactWidth)
-        network.element(elementAddress = key.address.toUShort(radix = 16))?.name
+        network.element(elementAddress = key.address)?.name
             ?: context.getString(R.string.label_unknown)
-    else network.node(address = key.address.toUShort(radix = 16))?.name
-        ?: context.getString(R.string.label_unknown)
+    else network.node(address = key.address)?.name ?: context.getString(R.string.label_unknown)
 
     is ModelKey -> {
-        val address = key.address.toUShort(radix = 16)
+        val address = key.address
         if (isCompactWidth) {
-            val node = network.node(address = address)
-                ?: return context.getString(R.string.label_unknown)
-            val element = node.element(address = address)
-                ?: return context.getString(R.string.label_unknown)
-            val modelId = element.model(key.modelId.toUInt(radix = 16))
-                ?: return context.getString(R.string.label_unknown)
+            val node =
+                network.node(address = address) ?: return context.getString(R.string.label_unknown)
+            val element =
+                node.element(address = address) ?: return context.getString(R.string.label_unknown)
+            val modelId =
+                element.model(key.modelId) ?: return context.getString(R.string.label_unknown)
             modelId.name ?: context.getString(R.string.label_unknown)
         } else network.element(elementAddress = address)?.name
             ?: context.getString(R.string.label_unknown)
     }
 
     is GroupsKey -> context.getString(R.string.label_groups)
-    is GroupKey -> network.group(address = key.address.toUShort(radix = 16))?.name
+    is GroupKey -> network.group(address = key.address)?.name
         ?: context.getString(R.string.label_unknown)
 
     is GroupControlsKey -> if (isCompactWidth) {
-        network.group(address = key.address.toUShort(radix = 16))?.name
-            ?: context.getString(R.string.label_unknown)
+        network.group(address = key.address)?.name ?: context.getString(R.string.label_unknown)
     } else context.getString(R.string.label_groups)
 
     is ProxyKey -> context.getString(R.string.label_proxy)
@@ -113,15 +111,14 @@ internal fun title(
     else context.getString(R.string.label_settings)
 
     is NetworkKeyContentKey -> if (isCompactWidth) {
-        network.networkKey(index = key.keyIndex.toUShort(radix = 16))?.name
-            ?: context.getString(R.string.label_unknown)
+        network.networkKey(index = key.keyIndex)?.name ?: context.getString(R.string.label_unknown)
     } else context.getString(R.string.label_network_keys)
 
     is ApplicationKeysContentKey -> if (isCompactWidth) context.getString(R.string.label_application_keys)
     else context.getString(R.string.label_settings)
 
     is ApplicationKeyContentKey -> if (isCompactWidth) {
-        network.applicationKey(index = key.keyIndex.toUShort(radix = 16))?.name
+        network.applicationKey(index = key.keyIndex)?.name
             ?: context.getString(R.string.label_unknown)
     } else context.getString(R.string.label_application_keys)
 
@@ -129,8 +126,7 @@ internal fun title(
     else context.getString(R.string.label_settings)
 
     is SceneContentKey -> if (isCompactWidth) {
-        network.scene(number = key.number.toUShort(radix = 16))?.name
-            ?: context.getString(R.string.label_unknown)
+        network.scene(number = key.number)?.name ?: context.getString(R.string.label_unknown)
     } else context.getString(R.string.label_scenes)
 
     is IvIndexContentKey -> if (isCompactWidth)

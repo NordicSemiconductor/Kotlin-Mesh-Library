@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.kotlin.data.HexString
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
@@ -22,9 +21,9 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 @HiltViewModel(assistedFactory = ApplicationKeyViewModel.Factory::class)
 internal class ApplicationKeyViewModel @AssistedInject internal constructor(
     private val repository: CoreDataRepository,
-    @Assisted private val index: HexString,
+    @Assisted index: Int,
 ) : ViewModel() {
-    private val keyIndex = index.toUShort(radix = 16)
+    private val keyIndex = index.toUShort()
     private lateinit var network: MeshNetwork
 
     private val _uiState = MutableStateFlow(ApplicationKeyScreenUiState())
@@ -39,17 +38,17 @@ internal class ApplicationKeyViewModel @AssistedInject internal constructor(
         observeNetwork()
     }
 
-    private fun observeNetwork() {
-        repository.network.onEach { network ->
+    private fun observeNetwork() = repository.network
+        .onEach { network ->
             this.network = network
-            val keyState = network.applicationKey(index = keyIndex)?.let { key ->
-                AppKeyState.Success(key = key)
-            } ?: AppKeyState.Error(throwable = IllegalStateException("Application Key not found."))
+            val keyState = network.applicationKey(index = keyIndex)
+                ?.let {  AppKeyState.Success(key = it) }
+                ?: AppKeyState.Error(throwable = IllegalStateException("Application Key not found."))
             _uiState.update { state ->
                 state.copy(keyState = keyState, networkKeys = network.networkKeys)
             }
-        }.launchIn(scope = viewModelScope)
-    }
+        }
+        .launchIn(scope = viewModelScope)
 
     /**
      * Saves the network.
@@ -60,7 +59,7 @@ internal class ApplicationKeyViewModel @AssistedInject internal constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(index: HexString): ApplicationKeyViewModel
+        fun create(index: Int): ApplicationKeyViewModel
     }
 }
 

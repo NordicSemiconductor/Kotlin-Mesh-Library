@@ -12,12 +12,10 @@ import no.nordicsemi.android.nrfmesh.core.navigation.AppState
 import no.nordicsemi.android.nrfmesh.core.navigation.SettingsListDetailSceneKey
 import no.nordicsemi.android.nrfmesh.feature.scenes.scene.SceneScreen
 import no.nordicsemi.android.nrfmesh.feature.scenes.scene.SceneViewModel
-import no.nordicsemi.kotlin.data.HexString
 import no.nordicsemi.kotlin.mesh.core.model.SceneNumber
 
 @Serializable
-data class SceneContentKey(val number: HexString) : NavKey {
-    constructor(number: SceneNumber) : this(number = number.toHexString())
+data class SceneContentKey(val number: SceneNumber) : NavKey {
 }
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
@@ -30,7 +28,7 @@ fun EntryProviderScope<NavKey>.sceneEntry(appState: AppState) {
         val viewModel = hiltViewModel<SceneViewModel, SceneViewModel.Factory>(
             key = "SceneViewModel:${key.number}"
         ) { factory ->
-            factory.create(number = key.number)
+            factory.create(number = key.number.toInt())
         }
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         SceneScreen(uiState = uiState, save = viewModel::save)

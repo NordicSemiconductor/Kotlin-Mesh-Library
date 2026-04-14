@@ -71,9 +71,9 @@ fun EntryProviderScope<NavKey>.nodeEntry(
                         viewModel.onItemSelected(item = ClickableNodeInfoItem.ApplicationKeys)
                         navigator.navigate(key = ConfigAppKeysKey(uuid = it.toString()))
                     },
-                    onElementClicked = {
-                        viewModel.onItemSelected(item = ClickableNodeInfoItem.Element(address = it))
-                        navigator.navigate(key = ElementKey(address = it.toHexString()))
+                    onElementClicked = { address ->
+                        viewModel.onItemSelected(item = ClickableNodeInfoItem.Element(address = address))
+                        navigator.navigate(key = ElementKey(address = address))
                     },
                     onExcluded = viewModel::onExcluded,
                     selectedItem = uiState.selectedNodeInfoItem,

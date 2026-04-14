@@ -1,6 +1,5 @@
 package no.nordicsemi.android.nrfmesh.feature.groups.group.controls
 
-import android.location.Address
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
@@ -15,12 +14,10 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.isSupportedGroupItem
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.feature.groups.group.GroupInfoListData
-import no.nordicsemi.kotlin.data.HexString
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Group
 import no.nordicsemi.kotlin.mesh.core.model.GroupAddress
-import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.ModelId
@@ -29,11 +26,9 @@ import no.nordicsemi.kotlin.mesh.core.model.ModelId.Companion.decode
 @HiltViewModel(assistedFactory = GroupControlsViewModel.Factory::class)
 internal class GroupControlsViewModel @AssistedInject internal constructor(
     private val repository: CoreDataRepository,
-    @Assisted key: String,
+    @Assisted("address") groupAddress: Int,
+    @Assisted("modelId") modelId: Int,
 ) : ViewModel() {
-    private val vals = key.split(":")
-    private val groupAddress = vals[0].toUShort(radix = 16)
-    private val modelId = vals[1].decode()
     private var group: Group? = null
     private val _uiState = MutableStateFlow(GroupControlsScreenUiState())
     val uiState: StateFlow<GroupControlsScreenUiState> = _uiState
@@ -48,7 +43,7 @@ internal class GroupControlsViewModel @AssistedInject internal constructor(
     init {
         viewModelScope.launch {
             repository.network.collect { network ->
-                network.group(address = groupAddress)?.let { group ->
+                network.group(address = groupAddress.toUShort())?.let { group ->
                     this@GroupControlsViewModel.group = group
                     val models = mutableMapOf<ModelId, List<Model>>()
                     network.nodes
@@ -65,7 +60,7 @@ internal class GroupControlsViewModel @AssistedInject internal constructor(
                     val state = _uiState.value.copy(
                         groupState = GroupModelControlsState.Success(
                             network = network,
-                            modelId = modelId,
+                            modelId = modelId.toUInt().decode(),
                             group = group,
                             groupInfoListData = GroupInfoListData(
                                 group = group,
@@ -119,7 +114,10 @@ internal class GroupControlsViewModel @AssistedInject internal constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(key: String): GroupControlsViewModel
+        fun create(
+            @Assisted("address") groupAddress: Int,
+            @Assisted("modelId") modelId: Int,
+        ): GroupControlsViewModel
     }
 }
 
