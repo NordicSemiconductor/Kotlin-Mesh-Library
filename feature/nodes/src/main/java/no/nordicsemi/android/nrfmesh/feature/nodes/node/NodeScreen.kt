@@ -3,7 +3,6 @@ package no.nordicsemi.android.nrfmesh.feature.nodes.node
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,7 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Badge
@@ -49,6 +50,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -126,128 +128,100 @@ internal fun NodeScreen(
         onRefresh = onRefresh,
         isRefreshing = isRefreshing
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 8.dp),
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(state = rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(space = 8.dp),
         ) {
-            item {
-                SectionTitle(
-                    modifier = Modifier
-                        .padding(top = 8.dp)
-                        .padding(horizontal = 16.dp),
-                    title = stringResource(R.string.label_node)
-                )
+            SectionTitle(
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .padding(horizontal = 16.dp),
+                title = stringResource(R.string.label_node)
+            )
+            NodeNameRow(
+                name = nodeData.name,
+                onNameChanged = {
+                    node.name = it
+                    save()
+                }
+            )
+            AddressRow(address = nodeData.address)
+            SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.title_keys)
+            )
+            DeviceKeyRow(deviceKey = nodeData.deviceKey ?: stringResource(R.string.unknown))
+            NetworkKeysRow(
+                count = nodeData.netKeys.size,
+                isSelected = selectedItem == ClickableNodeInfoItem.NetworkKeys
+                        && highlightSelectedItem,
+                onNetworkKeysClicked = { onNetworkKeysClicked(nodeData.uuid) }
+            )
+            ApplicationKeysRow(
+                count = nodeData.appKeys.size,
+                isSelected = selectedItem == ClickableNodeInfoItem.ApplicationKeys
+                        && highlightSelectedItem,
+                onApplicationKeysClicked = { onApplicationKeysClicked(nodeData.uuid) }
+            )
+            SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.title_elements)
+            )
+            nodeData.elements.forEach { element ->
+                key(element.index) {
+                    ElementRow(
+                        element = element,
+                        isSelected = (selectedItem as? ClickableNodeInfoItem.Element)?.address
+                                == element.unicastAddress.address
+                                && highlightSelectedItem,
+                        onElementsClicked = { onElementClicked(element.unicastAddress.address) }
+                    )
+                }
             }
-            item {
-                NodeNameRow(
-                    name = nodeData.name,
-                    onNameChanged = {
-                        node.name = it
-                        save()
-                    }
-                )
-            }
-            item { AddressRow(address = nodeData.address) }
-            item {
-                SectionTitle(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    title = stringResource(id = R.string.title_keys)
-                )
-            }
-            item {
-                DeviceKeyRow(
-                    deviceKey = nodeData.deviceKey ?: stringResource(R.string.unknown)
-                )
-            }
-            item {
-                NetworkKeysRow(
-                    count = nodeData.netKeys.size,
-                    isSelected = selectedItem == ClickableNodeInfoItem.NetworkKeys
-                            && highlightSelectedItem,
-                    onNetworkKeysClicked = { onNetworkKeysClicked(nodeData.uuid) }
-                )
-            }
-            item {
-                ApplicationKeysRow(
-                    count = nodeData.appKeys.size,
-                    isSelected = selectedItem == ClickableNodeInfoItem.ApplicationKeys
-                            && highlightSelectedItem,
-                    onApplicationKeysClicked = { onApplicationKeysClicked(nodeData.uuid) }
-                )
-            }
-            item {
-                SectionTitle(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    title = stringResource(id = R.string.title_elements)
-                )
-            }
-            items(items = nodeData.elements, key = { it.index }) { element ->
-                ElementRow(
-                    element = element,
-                    isSelected = (selectedItem as? ClickableNodeInfoItem.Element)?.address
-                            == element.unicastAddress.address
-                            && highlightSelectedItem,
-                    onElementsClicked = { onElementClicked(element.unicastAddress.address) }
-                )
-            }
-            item {
-                SectionTitle(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    title = stringResource(id = R.string.title_node_information)
-                )
-            }
-            item { CompanyIdentifier(companyIdentifier = nodeData.companyIdentifier) }
-            item { ProductIdentifier(productIdentifier = nodeData.productIdentifier) }
-            item { ProductVersion(productVersion = nodeData.versionIdentifier) }
-            item { ReplayProtectionCount(replayProtectionCount = nodeData.replayProtectionCount) }
-            item { Security(node = nodeData) }
-            item {
-                SectionTitle(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    title = stringResource(id = R.string.title_time_to_live)
-                )
-            }
-            item {
-                DefaultTtlRow(
-                    ttl = nodeData.defaultTtl,
-                    messageState = messageState,
-                    send = send
-                )
-            }
-            item {
-                SectionTitle(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    title = stringResource(id = R.string.title_proxy_state)
-                )
-            }
-            item {
-                ProxyStateRow(
-                    messageState = messageState,
-                    proxy = nodeData.features.proxy,
-                    send = send
-                )
-            }
-            item {
-                SectionTitle(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    title = stringResource(id = R.string.title_exclusions)
-                )
-            }
-            item { ExclusionRow(isExcluded = nodeData.excluded, onExcluded = onExcluded) }
-            item {
-                SectionTitle(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    title = stringResource(id = R.string.label_node_deletion)
-                )
-            }
-            item { ResetRow(messageState = messageState, navigateBack = navigateBack, send = send) }
-            item {
-                RemoveNode(
-                    navigateBack = navigateBack,
-                    removeNode = removeNode
-                )
-            }
+            SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.title_node_information)
+            )
+            CompanyIdentifier(companyIdentifier = nodeData.companyIdentifier)
+            ProductIdentifier(productIdentifier = nodeData.productIdentifier)
+            ProductVersion(productVersion = nodeData.versionIdentifier)
+            ReplayProtectionCount(replayProtectionCount = nodeData.replayProtectionCount)
+            Security(node = nodeData)
+            SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.title_time_to_live)
+            )
+            DefaultTtlRow(
+                ttl = nodeData.defaultTtl,
+                messageState = messageState,
+                send = send
+            )
+            SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.title_proxy_state)
+            )
+            ProxyStateRow(
+                messageState = messageState,
+                proxy = nodeData.features.proxy,
+                send = send
+            )
+            SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.title_exclusions)
+            )
+            ExclusionRow(isExcluded = nodeData.excluded, onExcluded = onExcluded)
+            SectionTitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = stringResource(id = R.string.label_node_deletion)
+            )
+            ResetRow(messageState = messageState, navigateBack = navigateBack, send = send)
+            RemoveNode(
+                navigateBack = navigateBack,
+                removeNode = removeNode
+            )
+            Spacer(modifier = Modifier.size(size = 16.dp))
         }
         if (showConfigurationTasks) {
             ModalBottomSheet(
