@@ -133,4 +133,9 @@
     <string name="label_error_incorrect_hex_value">Incorrect hex value</string>
     <string name="label_empty" />
     <string name="label_invalid_vendor_op_code_range">Invalid Op Code. Valid range 0x00 – 0x3F</string>
+    <plurals name="label_bound_application_keys_count">
+        <item quantity="zero">No Application Keys bound</item>
+        <item quantity="one">1 Application Key bound</item>
+        <item quantity="other">%d Application Keys bound</item>
+    </plurals>
 </resources>

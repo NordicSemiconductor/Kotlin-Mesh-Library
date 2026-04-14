@@ -43,6 +43,7 @@ internal class ModelViewModel @AssistedInject internal constructor(
 ) : ViewModel() {
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var selectedNode: Node
+    private lateinit var selectedModel: Model
 
     private val _uiState = MutableStateFlow(ModelScreenUiState())
     val uiState: StateFlow<ModelScreenUiState> = _uiState
@@ -183,7 +184,6 @@ internal class ModelViewModel @AssistedInject internal constructor(
                             response = response as? MeshResponse
                         )
                     )
-
                 } else {
                     repository.send(
                         model = model,
