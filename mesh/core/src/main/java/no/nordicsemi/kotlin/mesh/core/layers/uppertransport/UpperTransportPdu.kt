@@ -181,7 +181,7 @@ internal class UpperTransportPdu(
          * Decodes the Access Message using a matching Application Key based on the 'aid' field
          * value, or the Device Key of hte local or source Node.
          *
-         * @param message AccessMessage to be decode from.
+         * @param message AccessMessage to be decoded from.
          * @param network Network to be used for encryption.
          * @return A pair containing the UpperTransportPdu and the KeySet used to encrypt the
          *         message or null if the pdu could not be decoded.
@@ -206,9 +206,9 @@ internal class UpperTransportPdu(
                 // decoded with.
                 for (applicationKey in network.applicationKeys.boundTo(message.networkKey)) {
                     // The matchingGroups contains either a list of Virtual Groups, or a single nil
-                    for (group in matchingGroups) {
+                    loop@ for (group in matchingGroups) {
                         // Each time try decoding using the new, or the old key (if such exist) when
-                        // the generated aid matches the one sent int he message.
+                        // the generated aid matches the one sent in the message.
                         if (aid == applicationKey.aid) {
                             init(
                                 message = message,
@@ -221,15 +221,15 @@ internal class UpperTransportPdu(
                                 )
                             }
                         }
-                        val oldAid = requireNotNull(applicationKey.oldAid) { return null }
-                        require(aid == oldAid) { return null }
-                        val key = requireNotNull(applicationKey.oldKey) { return null }
-                        return init(
+                        val oldAid = requireNotNull(applicationKey.oldAid) { continue@loop }
+                        require(aid == oldAid) { continue@loop }
+                        val key = requireNotNull(applicationKey.oldKey) { continue@loop }
+                        init(
                             message = message,
                             key = key,
                             virtualGroup = group
                         )?.let { pdu ->
-                            Pair(pdu, AccessKeySet(applicationKey = applicationKey))
+                            return Pair(pdu, AccessKeySet(applicationKey = applicationKey))
                         }
                     }
                 }

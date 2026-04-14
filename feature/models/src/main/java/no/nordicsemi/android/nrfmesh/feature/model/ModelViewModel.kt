@@ -21,7 +21,6 @@ import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted
 import no.nordicsemi.android.nrfmesh.core.common.Sending
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.model.navigation.ModelRouteKey
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
 import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
@@ -39,12 +38,11 @@ import kotlin.uuid.ExperimentalUuidApi
 @HiltViewModel(assistedFactory = ModelViewModel.Factory::class)
 internal class ModelViewModel @AssistedInject internal constructor(
     private val repository: CoreDataRepository,
-    @Assisted modelRouteKey: ModelRouteKey,
+    @Assisted("address") private val address: Int,
+    @Assisted("modelId") private val modelId: Int,
 ) : ViewModel() {
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var selectedNode: Node
-    private val address = modelRouteKey.address
-    private val modelId = modelRouteKey.modelId
 
     private val _uiState = MutableStateFlow(ModelScreenUiState())
     val uiState: StateFlow<ModelScreenUiState> = _uiState
@@ -56,31 +54,23 @@ internal class ModelViewModel @AssistedInject internal constructor(
 
     init {
         observeNetworkChanges()
-        observeConfigNodeReset()
     }
 
-    private fun observeNetworkChanges() {
-        repository.network.onEach {
-            val modelState =
-                it.element(elementAddress = address)?.model(modelId = modelId)?.let { model ->
+    private fun observeNetworkChanges() = repository.network
+        .onEach { network ->
+            val modelState = network
+                .element(elementAddress = address.toUShort())
+                ?.model(modelId = modelId.toUInt())
+                ?.let { model ->
                     selectedNode = model.parentElement!!.parentNode!!
                     ModelState.Success(model = model)
                 } ?: ModelState.Error(Throwable("Element containing node not found"))
             _uiState.update { state ->
                 state.copy(modelState = modelState)
             }
-            meshNetwork = it // update the local network instance
-        }.launchIn(scope = viewModelScope)
-    }
-
-    /**
-     * Observes incoming messages from the repository to handle node reset events.
-     */
-    private fun observeConfigNodeReset() {
-        repository.incomingMessages.onEach {
-
-        }.launchIn(scope = viewModelScope)
-    }
+            meshNetwork = network // update the local network instance
+        }
+        .launchIn(scope = viewModelScope)
 
     /**
      * Returns if the NodeIdentityState for this should be updated/refreshed.
@@ -120,7 +110,7 @@ internal class ModelViewModel @AssistedInject internal constructor(
             var response: ConfigNodeIdentityStatus? = null
             try {
                 keys.forEach { key ->
-                    message = ConfigNodeIdentityGet(index = key.index)
+                    message = ConfigNodeIdentityGet(networkKeyIndex = key.index)
                     _uiState.value = _uiState.value.copy(messageState = Sending(message = message))
                     response = repository.send(
                         node = element.parentNode!!,
@@ -129,7 +119,7 @@ internal class ModelViewModel @AssistedInject internal constructor(
 
                     response.let { status ->
                         val index = nodeIdentityStates.indexOfFirst { state ->
-                            state.networkKey.index == status.index
+                            state.networkKey.index == status.networkKeyIndex
                         }
                         nodeIdentityStates[index] = nodeIdentityStates[index]
                             .copy(nodeIdentityState = status.identity)
@@ -137,7 +127,7 @@ internal class ModelViewModel @AssistedInject internal constructor(
                 }
                 _uiState.value = _uiState.value.copy(
                     messageState = Completed(
-                        message = ConfigNodeIdentityGet(index = keys.first().index),
+                        message = ConfigNodeIdentityGet(networkKeyIndex = keys.first().index),
                         response = response as ConfigNodeIdentityStatus
                     ),
                     nodeIdentityStates = nodeIdentityStates.toList()
@@ -217,7 +207,10 @@ internal class ModelViewModel @AssistedInject internal constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(modelRouteKey: ModelRouteKey): ModelViewModel
+        fun create(
+            @Assisted("address") address: Int,
+            @Assisted("modelId") modelId: Int,
+        ): ModelViewModel
     }
 }
 

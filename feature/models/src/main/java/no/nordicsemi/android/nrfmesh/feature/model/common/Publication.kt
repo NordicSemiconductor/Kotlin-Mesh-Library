@@ -315,7 +315,7 @@ private fun Destination(
                     expanded = expanded
                 )
             },
-            subtitle = destination?.let { "0x${it.toHexString()}" } ?: ""
+            subtitle = destination?.toHexString()
         )
         DropdownMenu(
             modifier = Modifier.exposedDropdownSize(),
@@ -363,7 +363,7 @@ private fun Destination(
                                     },
                                     title = element.name
                                         ?: stringResource(R.string.label_unknown),
-                                    subtitle = "0x${element.unicastAddress.toHexString()}"
+                                    subtitle = element.unicastAddress.toHexString()
                                 )
                             }
                         }

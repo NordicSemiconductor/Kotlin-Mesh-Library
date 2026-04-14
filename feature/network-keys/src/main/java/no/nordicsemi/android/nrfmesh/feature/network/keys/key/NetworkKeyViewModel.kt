@@ -14,16 +14,15 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.kotlin.data.HexString
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 
 @HiltViewModel(assistedFactory = NetworkKeyViewModel.Factory::class)
 class NetworkKeyViewModel @AssistedInject internal constructor(
     private val repository: CoreDataRepository,
-    @Assisted index: HexString,
+    @Assisted index: Int,
 ) : ViewModel() {
-    private val keyIndex = index.toUShort(radix = 16)
+    private val keyIndex = index.toUShort()
     private lateinit var network: MeshNetwork
     private val _uiState = MutableStateFlow(NetworkKeyScreenUiState())
     internal val uiState: StateFlow<NetworkKeyScreenUiState> = _uiState
@@ -37,17 +36,17 @@ class NetworkKeyViewModel @AssistedInject internal constructor(
         observeNetwork()
     }
 
-    private fun observeNetwork() {
-        repository.network.onEach { network ->
+    private fun observeNetwork() = repository.network
+        .onEach { network ->
             this.network = network
-            val keyState = network.networkKey(index = keyIndex)?.let { key ->
-                NetKeyState.Success(key = key)
-            } ?: NetKeyState.Error(throwable = IllegalStateException("Network Key not found."))
+            val keyState = network.networkKey(index = keyIndex)
+                ?.let { NetKeyState.Success(key = it) }
+                ?: NetKeyState.Error(throwable = IllegalStateException("Network Key not found."))
             _uiState.update { state ->
                 state.copy(keyState = keyState)
             }
-        }.launchIn(scope = viewModelScope)
-    }
+        }
+        .launchIn(scope = viewModelScope)
 
     /**
      * Saves the network.
@@ -58,7 +57,7 @@ class NetworkKeyViewModel @AssistedInject internal constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(index: HexString): NetworkKeyViewModel
+        fun create(index: Int): NetworkKeyViewModel
     }
 }
 

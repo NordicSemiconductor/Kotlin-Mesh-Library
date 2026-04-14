@@ -48,24 +48,24 @@ internal class SegmentedControlMessage(
     override val type = LowerTransportPduType.CONTROL_MESSAGE
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "Segmented $type (opCode: $opCode, seqZero: $sequenceZero, " +
-            "segO: $segmentOffset, segN: $lastSegmentNumber, " +
-            "data: ${
-                upperTransportPdu.toHexString(
-                    format = HexFormat {
-                        number.prefix = "0x"
-                        upperCase = true
-                    }
-                )
-            })"
+    override fun toString() = "Segmented $type (opCode: ${
+            opCode.toHexString(
+                format = HexFormat {
+                    number.prefix = "0x"
+                    upperCase = true
+                }
+            )
+        }, seqZero: $sequenceZero, " +
+          "segO: $segmentOffset, segN: $lastSegmentNumber, " +
+          "data: 0x${upperTransportPdu.toHexString(HexFormat.UpperCase)})"
 
     internal companion object {
 
         /**
-         * Crates a Segmented Control Message using the given NetworkPdu.
+         * Creates a Segmented Control Message using the given Network PDU.
          *
-         * @param networkPdu Network pdu containing the segmented control message.
-         * @return SegmentedControlMessage containing the decoded data.
+         * @param pdu Network pdu containing the segmented control message.
+         * @return Segmented Control Message containing the decoded data.
          */
         fun init(pdu: NetworkPdu): SegmentedControlMessage {
             // Minimum length of a Access Message is 6 bytes:

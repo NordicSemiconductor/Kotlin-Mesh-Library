@@ -26,12 +26,15 @@ import kotlin.experimental.or
 /**
  * This message is used to set the publication state of a model.
  *
+ * @property companyIdentifier     The company identifier, as registered at Bluetooth SIG.
+ * @property modelIdentifier       The model identifier.
+ * @property elementAddress        The target element address.
  * @property publish               Contains the publication state.
  */
 class ConfigModelPublicationSet(
+    override val elementAddress: UnicastAddress,
     override val companyIdentifier: UShort?,
     override val modelIdentifier: UShort,
-    override val elementAddress: UnicastAddress,
     val publish: Publish,
 ) : AcknowledgedConfigMessage, ConfigAnyModelMessage {
     override val opCode: UInt = Initializer.opCode
@@ -94,30 +97,29 @@ class ConfigModelPublicationSet(
     )
 
     override fun toString() = "ConfigModelPublicationSet(" +
-            "companyIdentifier: ${
-                companyIdentifier?.toHexString(
-                    format = HexFormat {
-                        number.prefix = "0x"
-                        upperCase = true
-                    }
-                ) ?: "null"
-            }, " +
+            "elementAddress: ${elementAddress.address}, " +
             "modelIdentifier: ${
                 modelIdentifier.toHexString(
                     format = HexFormat {
-                        number.prefix = "0x"
-                        upperCase = true
+                        number {
+                            prefix = "0x"
+                            upperCase = true
+                        }
                     }
                 )
             }, " +
-            "elementAddress: ${
-                elementAddress.address.toHexString(
-                    format = HexFormat {
-                        number.prefix = "0x"
-                        upperCase = true
-                    }
-                )
-            }, " +
+            if (companyIdentifier != null) {
+                "companyIdentifier: ${
+                    companyIdentifier.toHexString(
+                        format = HexFormat {
+                            number {
+                                prefix = "0x"
+                                upperCase = true
+                            }
+                        }
+                    )
+                }, "
+            } else { "" } +
             "publish: $publish)"
 
     companion object Initializer : ConfigMessageInitializer {

@@ -15,16 +15,13 @@ import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import no.nordicsemi.android.nrfmesh.core.data.models.ElementData
 import no.nordicsemi.android.nrfmesh.core.data.name
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
@@ -91,8 +88,6 @@ internal fun ElementScreen(
             }
             Spacer(modifier = Modifier.size(size = 8.dp))
         }
-    } else {
-
     }
 }
 
@@ -167,7 +162,7 @@ private fun AddressRow(address: UnicastAddress) {
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Lan,
         title = stringResource(id = R.string.label_address),
-        subtitle = "0x${address.toHexString()}",
+        subtitle = address.toHexString(),
     )
 }
 

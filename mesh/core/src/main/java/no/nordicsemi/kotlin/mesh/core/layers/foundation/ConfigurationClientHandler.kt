@@ -158,9 +158,9 @@ internal class ConfigurationClientHandler() : ModelEventHandler() {
             is ConfigNetKeyStatus -> if (response.isSuccess) {
                 node(address = source)?.apply {
                     when (request as ConfigNetKeyMessage) {
-                        is ConfigNetKeyAdd -> addNetKey(response.index)
-                        is ConfigNetKeyDelete -> removeNetKey(response.index)
-                        is ConfigNetKeyUpdate -> updateNetKey(response.index)
+                        is ConfigNetKeyAdd -> addNetKey(response.networkKeyIndex)
+                        is ConfigNetKeyDelete -> removeNetKey(response.networkKeyIndex)
+                        is ConfigNetKeyUpdate -> updateNetKey(response.networkKeyIndex)
                     }
                 }
             }
@@ -172,16 +172,16 @@ internal class ConfigurationClientHandler() : ModelEventHandler() {
             // Application Keys Management
             is ConfigAppKeyStatus -> if (response.isSuccess) node(address = source)?.apply {
                 when (request as ConfigNetKeyMessage) {
-                    is ConfigAppKeyAdd -> addAppKey(index = response.keyIndex)
-                    is ConfigAppKeyUpdate -> updateAppKey(index = response.keyIndex)
-                    is ConfigAppKeyDelete -> removeAppKey(response.keyIndex)
+                    is ConfigAppKeyAdd -> addAppKey(index = response.applicationKeyIndex)
+                    is ConfigAppKeyUpdate -> updateAppKey(index = response.applicationKeyIndex)
+                    is ConfigAppKeyDelete -> removeAppKey(response.applicationKeyIndex)
                 }
             }
 
             is ConfigAppKeyList -> node(address = source)?.apply {
                 setAppKeys(
                     appKeyIndexes = response.applicationKeyIndexes.toList(),
-                    netKeyIndex = response.index
+                    netKeyIndex = response.networkKeyIndex
                 )
             }
 
@@ -190,8 +190,8 @@ internal class ConfigurationClientHandler() : ModelEventHandler() {
                     ?.element(address = response.elementAddress)
                     ?.model(modelId = response.modelId)?.let {
                         when (request) {
-                            is ConfigModelAppBind -> it.bind(index = request.keyIndex)
-                            is ConfigModelAppUnbind -> it.unbind(index = request.keyIndex)
+                            is ConfigModelAppBind -> it.bind(index = request.applicationKeyIndex)
+                            is ConfigModelAppUnbind -> it.unbind(index = request.applicationKeyIndex)
                         }
                     }
             }

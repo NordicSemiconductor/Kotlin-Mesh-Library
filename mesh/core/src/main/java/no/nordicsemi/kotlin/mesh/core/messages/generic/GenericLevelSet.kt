@@ -87,9 +87,9 @@ class GenericLevelSet(
     @Suppress("unused")
     constructor(level: Short, tid: UByte) : this(level = level, tid = tid, transitionParams = null)
 
-    override fun toString() = "GenericLevelSet(tid: $tid, level: $level, " +
+    override fun toString() = "GenericLevelSet(tid: $tid, level: $level" +
             if (transitionTime != null && delay != null) {
-                "transitionTime: $transitionTime, delay: ${delay.toInt() * 5} ms)"
+                ", transitionTime: $transitionTime, delay: ${delay.toInt() * 5} ms)"
             } else ")"
 
     companion object Initializer : GenericMessageInitializer {

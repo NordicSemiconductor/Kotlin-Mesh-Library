@@ -13,8 +13,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.isSupportedGroupItem
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.groups.group.GroupInfoListData
-import no.nordicsemi.kotlin.data.HexString
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Group
@@ -26,9 +24,8 @@ import no.nordicsemi.kotlin.mesh.core.model.ModelId
 @HiltViewModel(assistedFactory = GroupViewModel.Factory::class)
 internal class GroupViewModel @AssistedInject internal constructor(
     private val repository: CoreDataRepository,
-    @Assisted address: String,
+    @Assisted address: Int,
 ) : ViewModel() {
-    private val groupAddress = address.toUShort(radix = 16)
     private var group: Group? = null
     private val _uiState = MutableStateFlow(GroupScreenUiState())
     val uiState: StateFlow<GroupScreenUiState> = _uiState
@@ -43,7 +40,7 @@ internal class GroupViewModel @AssistedInject internal constructor(
     init {
         viewModelScope.launch {
             repository.network.collect { network ->
-                network.group(address = groupAddress)?.let { group ->
+                network.group(address = address.toUShort())?.let { group ->
                     this@GroupViewModel.group = group
                     val models = mutableMapOf<ModelId, List<Model>>()
                     network.nodes
@@ -113,7 +110,7 @@ internal class GroupViewModel @AssistedInject internal constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(address: HexString): GroupViewModel
+        fun create(address: Int): GroupViewModel
     }
 }
 

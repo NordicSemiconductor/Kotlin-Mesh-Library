@@ -87,7 +87,7 @@ fun BottomSheetApplicationKeys(
             ) {
                 items(items = keys, key = { it.index.toInt() + 1 }) { key ->
                     val showProgress =
-                        (messageState.message as? ConfigAppKeyAdd)?.keyIndex == key.index &&
+                        (messageState.message as? ConfigAppKeyAdd)?.applicationKeyIndex == key.index &&
                                 messageState.isInProgress()
                     key.Row(
                         modifier = Modifier.padding(horizontal = 16.dp),

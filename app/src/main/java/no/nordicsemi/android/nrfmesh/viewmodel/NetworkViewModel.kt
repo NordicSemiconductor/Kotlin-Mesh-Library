@@ -181,14 +181,15 @@ class NetworkViewModel @Inject constructor(
                             .applicationKeys
                             .firstOrNull { it.index == keyIndex }
                         if (firstAppKey == null) {
-                            // Create such key and send it to the node before binding.
+                            // Create such key.
                             firstAppKey = meshNetwork!!.add(
                                 "Node Identification Key",
                                 index = keyIndex,
                                 boundNetworkKey = node.networkKeys.first()
                             )
-                            repository.send(node, ConfigAppKeyAdd(firstAppKey))
                         }
+                        // Send it to the node before binding.
+                        repository.send(node, ConfigAppKeyAdd(firstAppKey))
                     }
                     // Bind the key. Here it is guaranteed, that the key is known to the node.
                     repository.send(node, ConfigModelAppBind(

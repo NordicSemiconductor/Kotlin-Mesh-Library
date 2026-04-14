@@ -57,8 +57,7 @@ class ConfigNetworkTransmitSet(val count: UByte, val steps: UByte) : Acknowledge
         require(steps in 0u..31u) { "Steps must be in range 0..31" }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
-    override fun toString() = "ConfigNetworkTransmitSet(opCode: 0x${opCode.toHexString()})"
+    override fun toString() = "ConfigNetworkTransmitSet(count: $count, steps: $steps)"
 
     companion object Initializer : ConfigMessageInitializer {
         override val opCode = 0x8024u

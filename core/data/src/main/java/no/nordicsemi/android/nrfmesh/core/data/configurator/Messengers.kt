@@ -251,7 +251,7 @@ class Messenger(
                                 heartbeat.address.address.toHexString(HexFormat.UpperCase)
                             }",
                             message = ConfigHeartbeatPublicationSet(
-                                index = heartbeat.index,
+                                networkKeyIndex = heartbeat.index,
                                 destination = heartbeat.address,
                                 countLog = 0u,
                                 periodLog = 0u,
