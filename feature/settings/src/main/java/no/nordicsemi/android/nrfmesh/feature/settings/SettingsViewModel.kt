@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -22,6 +23,7 @@ class SettingsViewModel @AssistedInject constructor(
     private val repository: CoreDataRepository,
     @Assisted clickableSetting: ClickableSetting?
 ) : ViewModel() {
+    private lateinit var meshNetwork: MeshNetwork
     private val _uiState = MutableStateFlow(SettingsScreenUiState())
     val uiState: StateFlow<SettingsScreenUiState> = _uiState
         .stateIn(
@@ -29,7 +31,6 @@ class SettingsViewModel @AssistedInject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = SettingsScreenUiState(selectedSetting = clickableSetting)
         )
-    private lateinit var network: MeshNetwork
 
     init {
         observeNetworkState()
@@ -38,20 +39,21 @@ class SettingsViewModel @AssistedInject constructor(
     /**
      * Observes the network state and updates the UI state with the current network data.
      */
-    private fun observeNetworkState() {
-        repository.network.onEach {
+    private fun observeNetworkState() = repository.network
+        .filterNotNull()
+        .onEach { network ->
+            meshNetwork = network
             _uiState.update { state ->
                 state.copy(
                     networkState = MeshNetworkState.Success(
-                        network = it,
-                        settingsListData = SettingsListData(it)
+                        network = network,
+                        settingsListData = SettingsListData(network)
                     ),
                     selectedSetting = state.selectedSetting
                 )
             }
-            network = it
-        }.launchIn(scope = viewModelScope)
-    }
+        }
+        .launchIn(scope = viewModelScope)
 
     /**
      * Invoked when a setting is selected.
@@ -75,7 +77,7 @@ class SettingsViewModel @AssistedInject constructor(
      * @param name Name of the network.
      */
     fun onNameChanged(name: String) {
-        network.name = name
+        meshNetwork.name = name
         save()
     }
 

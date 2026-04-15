@@ -62,6 +62,7 @@ import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.feature.provisioning.ProvisionerState.Error
 import no.nordicsemi.kotlin.ble.client.android.ScanResult
 import no.nordicsemi.kotlin.mesh.bearer.gatt.utils.MeshProvisioningService
+import no.nordicsemi.kotlin.mesh.core.model.Address
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.provisioning.AuthAction
 import no.nordicsemi.kotlin.mesh.provisioning.AuthenticationMethod
@@ -75,17 +76,17 @@ import kotlin.uuid.Uuid
 @Composable
 internal fun ProvisioningScreen(
     uiState: ProvisioningScreenUiState,
-    beginProvisioning: (Boolean) -> Unit,
+    beginProvisioning: (shouldReconfigure: Boolean) -> Unit,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (ProvisioningParameters, Int, Int) -> Unit,
-    isValidAddress: (UShort) -> Boolean,
+    onAddressChanged: (Address) -> Unit,
+    isValidAddress: (Address) -> Boolean,
     onNetworkKeyClicked: (NetworkKey) -> Unit,
     onAuthenticationMethodSelected: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
     onProvisioningComplete: (Uuid) -> Unit,
     onProvisioningFailed: () -> Unit,
     disconnect: () -> Unit,
-    isDeviceAlreadyProvisioned: (ScanResult) -> Boolean,
+    onScanResultSelected: (ScanResult) -> Boolean,
 ) {
     BackHandler(
         enabled = uiState.provisionerState is ProvisionerState.Connecting ||
@@ -108,7 +109,7 @@ internal fun ProvisioningScreen(
         onProvisioningComplete = onProvisioningComplete,
         onProvisioningFailed = onProvisioningFailed,
         disconnect = disconnect,
-        isDeviceAlreadyProvisioned = isDeviceAlreadyProvisioned
+        onScanResultSelected = onScanResultSelected
     )
 }
 
@@ -116,17 +117,17 @@ internal fun ProvisioningScreen(
 @Composable
 private fun ProvisionerContent(
     uiState: ProvisioningScreenUiState,
-    beginProvisioning: (Boolean) -> Unit,
+    beginProvisioning: (shouldReconfigure: Boolean) -> Unit,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (ProvisioningParameters, Int, Int) -> Unit,
-    isValidAddress: (UShort) -> Boolean,
+    onAddressChanged: (Address) -> Unit,
+    isValidAddress: (Address) -> Boolean,
     onNetworkKeyClick: (NetworkKey) -> Unit,
     onAuthenticationMethodSelected: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
     onProvisioningComplete: (Uuid) -> Unit,
     onProvisioningFailed: () -> Unit,
     disconnect: () -> Unit,
-    isDeviceAlreadyProvisioned: (ScanResult) -> Boolean,
+    onScanResultSelected: (ScanResult) -> Boolean,
 ) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -154,10 +155,11 @@ private fun ProvisionerContent(
             }
         },
         onScanResultSelected = { scanResult ->
-            if (isDeviceAlreadyProvisioned(scanResult) && !uiState.developerSettings.quickProvisioning) {
+            val isDeviceAlreadyProvisioned = onScanResultSelected(scanResult)
+            if (isDeviceAlreadyProvisioned && !uiState.developerSettings.alwaysReconfigure) {
                 showReprovisionDialog = true
             } else {
-                beginProvisioning(false)
+                beginProvisioning(uiState.developerSettings.alwaysReconfigure)
                 openDeviceCapabilitiesSheet = true
             }
         }
@@ -245,6 +247,7 @@ private fun ProvisionerContent(
                 ProvisioningContent(
                     provisionerState = uiState.provisionerState,
                     networkKeys = uiState.networkKeys,
+                    parameters = uiState.provisioningParameters,
                     snackbarHostState = snackbarHostState,
                     showAuthenticationBottomSheet = showAuthenticationBottomSheet,
                     onAuthenticationBottomSheetDismissed = {
@@ -270,12 +273,13 @@ private fun ProvisionerContent(
 private fun ProvisioningContent(
     provisionerState: ProvisionerState,
     networkKeys: List<NetworkKey>,
+    parameters: ProvisioningParameters?,
     snackbarHostState: SnackbarHostState,
     showAuthenticationBottomSheet: Boolean,
     onAuthenticationBottomSheetDismissed: (Boolean) -> Unit,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (ProvisioningParameters, Int, Int) -> Unit,
-    isValidAddress: (UShort) -> Boolean,
+    onAddressChanged: (Address) -> Unit,
+    isValidAddress: (Address) -> Boolean,
     onNetworkKeyClick: (NetworkKey) -> Unit,
     onAuthenticationMethodSelected: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
@@ -308,6 +312,7 @@ private fun ProvisioningContent(
         is ProvisionerState.Provisioning -> ProvisioningStateInfo(
             state = provisionerState.state,
             networkKeys = networkKeys,
+            parameters = parameters,
             unprovisionedDevice = provisionerState.unprovisionedDevice,
             snackbarHostState = snackbarHostState,
             showAuthenticationBottomSheet = showAuthenticationBottomSheet,
@@ -365,13 +370,14 @@ private fun ProvisioningContent(
 private fun ProvisioningStateInfo(
     state: ProvisioningState,
     networkKeys: List<NetworkKey>,
+    parameters: ProvisioningParameters?,
     unprovisionedDevice: UnprovisionedDevice,
     snackbarHostState: SnackbarHostState,
     showAuthenticationBottomSheet: Boolean,
     onAuthenticationBottomSheetDismissed: (Boolean) -> Unit,
     onNameChanged: (String) -> Unit,
-    onAddressChanged: (ProvisioningParameters, Int, Int) -> Unit,
-    isValidAddress: (UShort) -> Boolean,
+    onAddressChanged: (Address) -> Unit,
+    isValidAddress: (Address) -> Boolean,
     onNetworkKeyClicked: (NetworkKey) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
     onProvisioningComplete: (Uuid) -> Unit,
@@ -386,9 +392,10 @@ private fun ProvisioningStateInfo(
         )
 
         is ProvisioningState.CapabilitiesReceived -> DeviceCapabilities(
-            state = state,
-            snackbarHostState = snackbarHostState,
+            capabilities = state.capabilities,
             networkKeys = networkKeys,
+            parameters = parameters ?: state.defaultParameters,
+            snackbarHostState = snackbarHostState,
             unprovisionedDevice = unprovisionedDevice,
             showAuthenticationBottomSheet = showAuthenticationBottomSheet,
             onAuthenticationBottomSheetDismissed = onAuthenticationBottomSheetDismissed,

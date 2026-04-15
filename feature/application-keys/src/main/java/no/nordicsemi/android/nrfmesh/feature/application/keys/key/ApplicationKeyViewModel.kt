@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -39,8 +40,9 @@ internal class ApplicationKeyViewModel @AssistedInject internal constructor(
     }
 
     private fun observeNetwork() = repository.network
-        .onEach { network ->
-            this.network = network
+        .filterNotNull()
+        .onEach { meshNetwork ->
+            network = meshNetwork
             val keyState = network.applicationKey(index = keyIndex)
                 ?.let {  AppKeyState.Success(key = it) }
                 ?: AppKeyState.Error(throwable = IllegalStateException("Application Key not found."))
@@ -48,7 +50,7 @@ internal class ApplicationKeyViewModel @AssistedInject internal constructor(
                 state.copy(keyState = keyState, networkKeys = network.networkKeys)
             }
         }
-        .launchIn(scope = viewModelScope)
+        .launchIn(viewModelScope)
 
     /**
      * Saves the network.

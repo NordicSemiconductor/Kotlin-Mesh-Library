@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -39,9 +40,10 @@ internal class ScenesViewModel @AssistedInject internal constructor(
         super.onCleared()
     }
 
-    private fun observeNetwork() {
-        repository.network.onEach { network ->
-            this.network = network
+    private fun observeNetwork() = repository.network
+        .filterNotNull()
+        .onEach { meshNetwork ->
+            network = meshNetwork
             _uiState.update { state ->
                 state.copy(
                     scenes = network.scenes
@@ -50,8 +52,8 @@ internal class ScenesViewModel @AssistedInject internal constructor(
                         .filter { it !in state.scenesToBeRemoved }
                 )
             }
-        }.launchIn(scope = viewModelScope)
-    }
+        }
+        .launchIn(viewModelScope)
 
     /**
      * Adds a scene to the network.

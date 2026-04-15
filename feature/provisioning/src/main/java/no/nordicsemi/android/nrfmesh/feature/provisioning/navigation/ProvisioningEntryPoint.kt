@@ -44,7 +44,7 @@ fun EntryProviderScope<NavKey>.provisioningEntry(
                 navigator.goBack()
             },
             disconnect = viewModel::disconnect,
-            isDeviceAlreadyProvisioned = viewModel::isDeviceAlreadyProvisioned
+            onScanResultSelected = viewModel::onScanResultSelected
         )
     }
 }

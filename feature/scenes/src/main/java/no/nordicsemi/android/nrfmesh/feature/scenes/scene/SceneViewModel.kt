@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -37,8 +38,9 @@ internal class SceneViewModel @AssistedInject internal constructor(
     }
 
     private fun observeNetwork() = repository.network
-        .onEach { network ->
-            this.network = network
+        .filterNotNull()
+        .onEach { meshNetwork ->
+            network = meshNetwork
             val sceneState = network.scene(number = sceneNumber)
                 ?.let { SceneState.Success(scene = it) }
                 ?: SceneState.Error(throwable = IllegalStateException("Scene not found."))
@@ -46,7 +48,7 @@ internal class SceneViewModel @AssistedInject internal constructor(
                 state.copy(sceneState = sceneState)
             }
         }
-        .launchIn(scope = viewModelScope)
+        .launchIn(viewModelScope)
 
     /**
      * Saves the network.

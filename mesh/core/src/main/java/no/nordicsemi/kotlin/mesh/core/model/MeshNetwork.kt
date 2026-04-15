@@ -40,10 +40,10 @@ import no.nordicsemi.kotlin.mesh.core.util.NetworkIdentity
 import no.nordicsemi.kotlin.mesh.core.util.NodeIdentity
 import no.nordicsemi.kotlin.mesh.crypto.Crypto
 import java.lang.Integer.min
-import kotlin.uuid.Uuid
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * MeshNetwork representing a Bluetooth mesh network.
@@ -828,9 +828,7 @@ data class MeshNetwork internal constructor(
      * @param nodeIdentity Node identity.
      * @return Node or null otherwise.
      */
-    fun node(nodeIdentity: NodeIdentity): Node? {
-        return nodes.firstOrNull { nodeIdentity.matches(it) }
-    }
+    fun node(nodeIdentity: NodeIdentity) = nodes.find { nodeIdentity.matches(it) }
 
     /**
      * Adds a given [Node] to the list of nodes in the mesh network.

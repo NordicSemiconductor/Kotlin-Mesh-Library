@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -42,11 +43,11 @@ internal class ElementViewModel @AssistedInject internal constructor(
 
     init {
         observeNetworkChanges()
-        observeConfigNodeReset()
     }
 
-    private fun observeNetworkChanges() {
-        repository.network.onEach {
+    private fun observeNetworkChanges() = repository.network
+        .filterNotNull()
+        .onEach {
             val elementState = it.element(elementAddress = address)?.let { element ->
                 selectedNode = element.parentNode!!
                 ElementState.Success(element = element)
@@ -57,26 +58,13 @@ internal class ElementViewModel @AssistedInject internal constructor(
                 )
             }
             meshNetwork = it // update the local network instance
-        }.launchIn(scope = viewModelScope)
-    }
-
-    /**
-     * Observes incoming messages from the repository to handle node reset events.
-     */
-    private fun observeConfigNodeReset() {
-        repository.incomingMessages.onEach {
-
-        }.launchIn(scope = viewModelScope)
-    }
+        }
+        .launchIn(scope = viewModelScope)
 
     fun save() {
         viewModelScope.launch {
             repository.save()
         }
-    }
-
-    internal fun resetMessageState() {
-        _uiState.value = _uiState.value.copy(messageState = NotStarted)
     }
 
     @AssistedFactory

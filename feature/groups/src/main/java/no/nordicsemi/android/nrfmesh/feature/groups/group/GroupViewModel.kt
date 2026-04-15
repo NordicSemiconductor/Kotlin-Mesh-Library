@@ -9,6 +9,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.isSupportedGroupItem
@@ -38,8 +41,9 @@ internal class GroupViewModel @AssistedInject internal constructor(
     private lateinit var network: MeshNetwork
 
     init {
-        viewModelScope.launch {
-            repository.network.collect { network ->
+        repository.network
+            .filterNotNull()
+            .onEach { network ->
                 network.group(address = address.toUShort())?.let { group ->
                     this@GroupViewModel.group = group
                     val models = mutableMapOf<ModelId, List<Model>>()
@@ -68,7 +72,7 @@ internal class GroupViewModel @AssistedInject internal constructor(
                     this@GroupViewModel.network = network
                 }
             }
-        }
+            .launchIn(scope = viewModelScope)
     }
 
     internal fun save() {

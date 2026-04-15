@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -39,14 +40,10 @@ internal class ProvisionersViewModel @AssistedInject internal constructor(
         observeNetwork()
     }
 
-    override fun onCleared() {
-        removeProvisioners()
-        super.onCleared()
-    }
-
-    private fun observeNetwork() {
-        repository.network.onEach { network ->
-            this.network = network
+    private fun observeNetwork() = repository.network
+        .filterNotNull()
+        .onEach { meshNetwork ->
+            network = meshNetwork
             _uiState.update { state ->
                 state.copy(
                     provisioners = network.provisioners
@@ -56,7 +53,12 @@ internal class ProvisionersViewModel @AssistedInject internal constructor(
 
                     )
             }
-        }.launchIn(scope = viewModelScope)
+        }
+        .launchIn(viewModelScope)
+
+    override fun onCleared() {
+        removeProvisioners()
+        super.onCleared()
     }
 
     /**

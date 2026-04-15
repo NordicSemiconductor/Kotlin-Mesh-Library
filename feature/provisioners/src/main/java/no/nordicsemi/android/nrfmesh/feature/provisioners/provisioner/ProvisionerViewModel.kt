@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -46,9 +47,10 @@ internal class ProvisionerViewModel
     }
 
     @OptIn(ExperimentalUuidApi::class)
-    private fun observeNetwork() {
-        repository.network.onEach { network ->
-            this.network = network
+    private fun observeNetwork() = repository.network
+        .filterNotNull()
+        .onEach { meshNetwork ->
+            network = meshNetwork
             val provisionerState = network.provisioner(uuid = provisionerUuid)?.let { provisioner ->
                 this.provisioner = provisioner
                 ProvisionerState.Success(
@@ -62,8 +64,8 @@ internal class ProvisionerViewModel
                     index = network.provisioners.indexOf(provisioner)
                 )
             }
-        }.launchIn(scope = viewModelScope)
-    }
+        }
+        .launchIn(viewModelScope)
 
     /**
      * Moves the provisioner to a new index in the list.

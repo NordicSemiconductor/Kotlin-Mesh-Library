@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -57,9 +58,10 @@ internal class ConfigAppKeysViewModel @AssistedInject internal constructor(
         observeNetworkChanges()
     }
 
-    private fun observeNetworkChanges() {
-        repository.network.onEach {
-            this@ConfigAppKeysViewModel.selectedNode = it.node(uuid = nodeUuid) ?: return@onEach
+    private fun observeNetworkChanges() = repository.network
+        .filterNotNull()
+        .onEach { network ->
+            this@ConfigAppKeysViewModel.selectedNode = network.node(uuid = nodeUuid) ?: return@onEach
             _uiState.update { state ->
                 state.copy(
                     isLocalProvisionerNode = selectedNode.isLocalProvisioner,
@@ -67,9 +69,9 @@ internal class ConfigAppKeysViewModel @AssistedInject internal constructor(
                     availableAppKeys = selectedNode.unknownApplicationKeys()
                 )
             }
-            meshNetwork = it // update the local network instance
-        }.launchIn(scope = viewModelScope)
-    }
+            meshNetwork = network // update the local network instance
+        }
+        .launchIn(scope = viewModelScope)
 
     /**
      * Called when the user pulls down to refresh the node details.

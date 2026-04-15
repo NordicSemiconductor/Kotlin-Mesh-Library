@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -68,8 +69,9 @@ internal class NodeViewModel @AssistedInject internal constructor(
         messenger?.clear()
     }
 
-    private fun observeNetworkChanges() {
-        repository.network.onEach {
+    private fun observeNetworkChanges() = repository.network
+        .filterNotNull()
+        .onEach {
             val nodeState = it.node(uuid = nodeUuid)?.let { node ->
                 this@NodeViewModel.selectedNode = node
                 NodeState.Success(
@@ -85,14 +87,14 @@ internal class NodeViewModel @AssistedInject internal constructor(
                 )
             }
             meshNetwork = it // update the local network instance
-        }.launchIn(scope = viewModelScope)
-    }
+        }
+        .launchIn(scope = viewModelScope)
 
     /**
      * Observes incoming messages from the repository to handle node reset events.
      */
-    private fun observeConfigNodeReset() {
-        repository.incomingMessages.onEach {
+    private fun observeConfigNodeReset() = repository.incomingMessages
+        .onEach {
             if (it is ConfigNodeReset) {
                 _uiState.value = _uiState.value.copy(
                     nodeState = NodeState.Error(
@@ -101,25 +103,23 @@ internal class NodeViewModel @AssistedInject internal constructor(
                     isRefreshing = false
                 )
             }
-        }.launchIn(scope = viewModelScope)
-    }
+        }
+        .launchIn(scope = viewModelScope)
 
     /**
      * Observes messenger to handle incoming messages from the repository.
      */
-    private fun observeMessenger() {
-        messenger?.meshTaskFlow
-            ?.onEach { tasks ->
-                _uiState.update { it.copy(tasks = tasks.toList()) }
-            }?.launchIn(scope = viewModelScope)
-    }
+    private fun observeMessenger() = messenger?.meshTaskFlow
+        ?.onEach { tasks ->
+            _uiState.update { it.copy(tasks = tasks.toList()) }
+        }
+        ?.launchIn(scope = viewModelScope)
 
     /**
      * Requests the composition data for the selected node when the network is connected.
      */
-    private fun executeTasks() {
-        // Request the composition data when the network is connected if it has not been requested yet.
-        repository.proxyConnectionStateFlow.onEach {
+    private fun executeTasks() = repository.proxyConnectionStateFlow
+        .onEach {
             if (it.connectionState is NetworkConnectionState.Connected) {
                 // Add a small delay to ensure proxy filter is set up before sending the message.
                 if (!selectedNode.isCompositionDataReceived) {
@@ -127,8 +127,8 @@ internal class NodeViewModel @AssistedInject internal constructor(
                     messenger?.execute(meshNetwork = meshNetwork, newNode = selectedNode)
                 }
             }
-        }.launchIn(scope = viewModelScope)
-    }
+        }
+        .launchIn(scope = viewModelScope)
 
     internal fun onReconfigCompletePressed() {
         messenger?.clear()

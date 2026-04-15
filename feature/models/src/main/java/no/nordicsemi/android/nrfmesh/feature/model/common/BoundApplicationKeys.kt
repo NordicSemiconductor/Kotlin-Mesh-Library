@@ -88,14 +88,18 @@ internal fun BoundApplicationKeys(
             },
             buttonIcon = Icons.Outlined.Refresh,
             enabled = !messageState.isInProgress(),
-            isOnClickActionInProgress = messageState.isInProgress()
+            isOnClickActionInProgress = messageState.isInProgress() &&
+                    messageState.message is ConfigSigModelAppGet,
         )
     }
     ElevatedCardItem(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.AddLink,
         title = stringResource(R.string.label_bind_application_keys),
-        subtitle = "${model.boundApplicationKeys.size} key(s) are bound",
+        subtitle = pluralStringResource(
+            R.plurals.label_bound_application_keys_count,
+            model.boundApplicationKeys.size,
+            model.boundApplicationKeys.size),
         onClick = { showBottomSheet = !showBottomSheet }
     )
     if (showBottomSheet) {

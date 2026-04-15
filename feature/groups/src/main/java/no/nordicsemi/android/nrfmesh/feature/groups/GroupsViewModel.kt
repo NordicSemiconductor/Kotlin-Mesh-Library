@@ -6,6 +6,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
@@ -19,6 +22,7 @@ import javax.inject.Inject
 internal class GroupsViewModel @Inject internal constructor(
     private val repository: CoreDataRepository,
 ) : ViewModel() {
+    private lateinit var meshNetwork: MeshNetwork
     private val _uiState = MutableStateFlow(GroupsScreenUiState(groups = listOf()))
     val uiState: StateFlow<GroupsScreenUiState> = _uiState
         .stateIn(
@@ -27,18 +31,20 @@ internal class GroupsViewModel @Inject internal constructor(
             initialValue = GroupsScreenUiState(groups = listOf())
         )
 
-    private lateinit var meshNetwork: MeshNetwork
-
     init {
-        viewModelScope.launch {
-            repository.network.collect { network ->
-                this@GroupsViewModel.meshNetwork = network
-                _uiState.value = GroupsScreenUiState(
-                    groups = network.groups
-                )
-            }
-        }
+        observeNetworkChanges()
     }
+
+    // Observes the mesh network for any changes i.e. network reset etc.
+    private fun observeNetworkChanges() = repository.network
+        .filterNotNull()
+        .onEach { network ->
+            meshNetwork = network
+            _uiState.value = GroupsScreenUiState(
+                groups = network.groups
+            )
+        }
+        .launchIn(scope = viewModelScope)
 
     /**
      * Returns the next available group address

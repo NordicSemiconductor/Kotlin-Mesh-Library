@@ -498,7 +498,7 @@ private fun DefaultTtlRow(
         modifier = Modifier.padding(horizontal = 16.dp),
         imageVector = Icons.Outlined.Timer,
         title = stringResource(R.string.label_default_time_to_live),
-        subtitle = if (ttl != null) "TTL set to $ttl" else "Unknown",
+        subtitle = if (ttl != null) "TTL set to $ttl." else "Unknown",
         supportingText = stringResource(R.string.label_default_ttl_rationale)
     ) {
         MeshOutlinedButton(
@@ -598,7 +598,7 @@ private fun ProxyStateRow(
                 }
             )
         },
-        subtitle = "Proxy state is ${if (isEnabled) "enabled" else "disabled"}",
+        subtitle = if (isEnabled) "Enabled" else "Disabled",
         supportingText = stringResource(R.string.label_proxy_state_rationale)
     ) {
         MeshOutlinedButton(

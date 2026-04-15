@@ -59,7 +59,6 @@ import kotlin.time.DurationUnit
 internal class NetworkManager internal constructor(
     private val manager: MeshNetworkManager,
 ) : NetworkManagerEventTransmitter {
-
     internal val scope: CoroutineScope = manager.scope
     internal var proxy: ProxyFilterEventHandler = manager.proxyFilter
 

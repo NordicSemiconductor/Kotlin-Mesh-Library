@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -58,6 +59,7 @@ internal class ModelViewModel @AssistedInject internal constructor(
     }
 
     private fun observeNetworkChanges() = repository.network
+        .filterNotNull()
         .onEach { network ->
             val modelState = network
                 .element(elementAddress = address.toUShort())
