@@ -141,10 +141,10 @@ private fun RelayFeature(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var retransmissions by remember {
+    var retransmissions by remember(key1 = relayRetransmit) {
         mutableFloatStateOf(relayRetransmit?.count?.toFloat() ?: 0f)
     }
-    var interval by remember {
+    var interval by remember(key1 = relayRetransmit) {
         mutableFloatStateOf(relayRetransmit?.interval?.toFloat() ?: 0f)
     }
     ElevatedCardItem(
@@ -173,7 +173,7 @@ private fun RelayFeature(
             )
             Slider(
                 enabled = relay?.state?.isSupported == true &&
-                        retransmissions > 0 &&
+                        retransmissions > RelayRetransmit.MIN_COUNT &&
                         !messageState.isInProgress(),
                 value = interval,
                 onValueChange = { interval = it },
@@ -212,10 +212,8 @@ private fun RelayFeature(
                     runCatching {
                         send(
                             ConfigRelaySet(
-                                relayRetransmit = RelayRetransmit(
-                                    count = retransmissions.roundToInt(),
-                                    interval = interval.roundToInt()
-                                )
+                                count = retransmissions.roundToInt(),
+                                interval = interval.roundToInt()
                             )
                         )
                     }.onFailure {
@@ -239,10 +237,10 @@ private fun NetworkTransmit(
     networkTransmit: NetworkTransmit?,
     send: (AcknowledgedConfigMessage) -> Unit,
 ) {
-    var transmissions by remember {
+    var transmissions by remember(key1 = networkTransmit) {
         mutableFloatStateOf(networkTransmit?.count?.toFloat() ?: 0f)
     }
-    var interval by remember {
+    var interval by remember(key1 = networkTransmit) {
         mutableFloatStateOf(networkTransmit?.interval?.toFloat() ?: 0f)
     }
     ElevatedCardItem(
@@ -256,7 +254,7 @@ private fun NetworkTransmit(
                 onValueChange = {
                     transmissions = it
                 },
-                valueRange = RelayRetransmit.COUNT_RANGE.toFloat(),
+                valueRange = NetworkTransmit.COUNT_RANGE.toFloat(),
                 steps = 6,
                 colors = NordicSliderDefaults.colors()
             )
@@ -272,10 +270,10 @@ private fun NetworkTransmit(
                 textAlign = TextAlign.End
             )
             Slider(
-                enabled = transmissions > 0 && !messageState.isInProgress(),
+                enabled = transmissions > NetworkTransmit.MIN_COUNT && !messageState.isInProgress(),
                 value = interval,
                 onValueChange = { interval = it },
-                valueRange = RelayRetransmit.INTERVAL_RANGE.toFloat(),
+                valueRange = NetworkTransmit.INTERVAL_RANGE.toFloat(),
                 steps = 30,
                 colors = NordicSliderDefaults.colors()
             )
@@ -309,12 +307,12 @@ private fun NetworkTransmit(
                 onClick = {
                     send(
                         ConfigNetworkTransmitSet(
-                            count = transmissions.roundToInt().toUByte(),
-                            steps = NetworkTransmit.toSteps(interval.roundToInt().toUShort())
+                            count = transmissions.roundToInt(),
+                            interval = interval.roundToInt()
                         )
                     )
                 },
-                enabled = !messageState.isInProgress()
+                enabled = transmissions > 0 && !messageState.isInProgress()
             )
         }
     )

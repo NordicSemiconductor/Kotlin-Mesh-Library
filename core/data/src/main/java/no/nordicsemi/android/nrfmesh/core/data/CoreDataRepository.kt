@@ -718,6 +718,6 @@ sealed class NetworkConnectionState {
 }
 
 data class ProxyConnectionState(
-    val autoConnect: Boolean = false,
+    val autoConnect: Boolean = true,
     val connectionState: NetworkConnectionState = NetworkConnectionState.Disconnected,
 )

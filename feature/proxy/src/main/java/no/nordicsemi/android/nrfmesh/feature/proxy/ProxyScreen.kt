@@ -279,7 +279,7 @@ private fun AutomaticConnectionRow(
         body = {
             Text(
                 modifier = Modifier.padding(start = 42.dp),
-                text = "State: ${proxyConnectionState.connectionState.describe()}",
+                text = proxyConnectionState.connectionState.describe(),
                 style = MaterialTheme.typography.bodyMedium,
             )
         },
@@ -343,8 +343,8 @@ private fun FilterSection(
                 .padding(vertical = 8.dp),
         ) {
             SectionTitle(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                title = stringResource(R.string.label_filter_type)
+                modifier = Modifier.padding(end = 16.dp),
+                title = stringResource(R.string.label_proxy_filter)
             )
             Row(
                 modifier = Modifier
@@ -398,8 +398,8 @@ private fun FilterSection(
             SectionTitle(
                 modifier = Modifier
                     .weight(weight = 1f)
-                    .padding(horizontal = 16.dp),
-                title = stringResource(R.string.label_filter_type)
+                    .padding(end = 16.dp),
+                title = stringResource(R.string.label_proxy_filter)
             )
             MeshOutlinedButton(
                 isOnClickActionInProgress = messageState.isInProgress()

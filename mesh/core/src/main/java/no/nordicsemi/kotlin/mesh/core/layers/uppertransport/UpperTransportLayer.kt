@@ -19,6 +19,7 @@ import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
+import java.util.HexFormat
 import java.util.Timer
 import kotlin.concurrent.timer
 import kotlin.time.DurationUnit
@@ -55,14 +56,14 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) :
                 val message = UpperTransportPdu.decode(
                     message = accessMessage, network = meshNetwork
                 )?.let {
-                    logger?.i(LogCategory.UPPER_TRANSPORT) { "Received ${it.first}." }
+                    logger?.i(LogCategory.UPPER_TRANSPORT) { "Received ${it.first}" }
                     networkManager.accessLayer.handle(
                         upperTransportPdu = it.first,
                         keySet = it.second
                     )
                 }
                 if (message == null) {
-                    logger?.w(LogCategory.UPPER_TRANSPORT) { "Failed to decode PDU." }
+                    logger?.w(LogCategory.UPPER_TRANSPORT) { "Failed to decode PDU" }
                 }
                 return message
             }
@@ -81,7 +82,14 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) :
 
                     else -> {
                         logger?.i(LogCategory.UPPER_TRANSPORT) {
-                            "Unsupported Control Message received (opCode: ${message.opCode})."
+                            "Unsupported Control Message received (opCode: ${
+                                message.opCode.toHexString(
+                                    format = HexFormat {
+                                        number.prefix = "0x"
+                                        upperCase = true
+                                    }
+                                )
+                            })"
                         }
                     }
                 }
@@ -108,7 +116,7 @@ internal class UpperTransportLayer(private val networkManager: NetworkManager) :
             sequence = sequence,
             ivIndex = meshNetwork.ivIndex
         )
-        logger?.i(LogCategory.UPPER_TRANSPORT) { "Sending $pdu encrypted using key: $keySet." }
+        logger?.i(LogCategory.UPPER_TRANSPORT) { "Sending $pdu (encrypted using key: $keySet)" }
 
         if (pdu.transportPdu.size > 15 || accessPdu.isSegmented) {
             // Enqueue the PDU. If the queue was empty, the PDU will be sent immediately.

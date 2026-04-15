@@ -14,45 +14,23 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.nrfmesh.core.common.Completed
-import no.nordicsemi.android.nrfmesh.core.common.Failed
 import no.nordicsemi.android.nrfmesh.core.common.MessageState
-import no.nordicsemi.android.nrfmesh.core.common.NodeIdentityStatus
 import no.nordicsemi.android.nrfmesh.core.common.NotStarted
-import no.nordicsemi.android.nrfmesh.core.common.Sending
-import no.nordicsemi.android.nrfmesh.core.common.unknownApplicationKeys
-import no.nordicsemi.android.nrfmesh.core.common.unknownNetworkKeys
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
-import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeInfoListData
-import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeState
-import no.nordicsemi.kotlin.data.HexString
-import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedConfigMessage
-import no.nordicsemi.kotlin.mesh.core.messages.AcknowledgedMeshMessage
-import no.nordicsemi.kotlin.mesh.core.messages.ConfigResponse
-import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
-import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
-import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyGet
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityGet
-import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeIdentityStatus
-import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
-import no.nordicsemi.kotlin.mesh.core.model.Model
-import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.Node
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 @HiltViewModel(assistedFactory = ElementViewModel.Factory::class)
 internal class ElementViewModel @AssistedInject internal constructor(
     private val repository: CoreDataRepository,
-    @Assisted address: HexString,
+    @Assisted address: Int,
 ) : ViewModel() {
     private lateinit var meshNetwork: MeshNetwork
     private lateinit var selectedNode: Node
-    private val address = address.toUShort(radix = 16)
+    private val address = address.toUShort()
 
     private val _uiState = MutableStateFlow(ElementScreenUiState())
     val uiState: StateFlow<ElementScreenUiState> = _uiState
@@ -103,7 +81,7 @@ internal class ElementViewModel @AssistedInject internal constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(address: HexString): ElementViewModel
+        fun create(address: Int): ElementViewModel
     }
 }
 

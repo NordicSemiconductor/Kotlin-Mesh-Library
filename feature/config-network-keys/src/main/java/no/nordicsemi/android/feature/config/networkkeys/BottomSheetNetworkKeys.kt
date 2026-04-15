@@ -86,7 +86,7 @@ fun BottomSheetNetworkKeys(
             ) {
                 items(items = keys) { key ->
                     val showProgress =
-                        (messageState.message as? ConfigNetKeyAdd)?.index == key.index &&
+                        (messageState.message as? ConfigNetKeyAdd)?.networkKeyIndex == key.index &&
                                 messageState.isInProgress()
                     key.Row(
                         modifier = Modifier.padding(horizontal = 16.dp),

@@ -246,7 +246,7 @@ internal object NetworkPduDecoder {
                     pdu = pdu,
                     key = networkKey,
                     ivIndex = currentIvIndex,
-                    ivi = nid,
+                    ivi = ivi,
                     nid = nid,
                     type = type,
                     ttl = ttl,
@@ -284,7 +284,7 @@ internal object NetworkPduDecoder {
         require(pduType == PduType.NETWORK_PDU || pduType == PduType.PROXY_CONFIGURATION) {
             throw IllegalArgumentException(
                 "Only ${PduType.NETWORK_PDU} and ${PduType.PROXY_CONFIGURATION} can be encoded " +
-                        "into a NetworkPdu."
+                        "into a NetworkPdu"
             )
         }
         val networkKey = lowerTransportPdu.networkKey

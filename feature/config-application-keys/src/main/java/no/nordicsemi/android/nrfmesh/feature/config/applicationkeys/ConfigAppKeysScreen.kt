@@ -5,6 +5,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -74,7 +75,7 @@ internal fun ConfigAppKeysScreen(
     onAddAppKeyClicked: () -> Unit,
     navigateToApplicationKeys: () -> Unit,
     readApplicationKeys: () -> Unit,
-    isKeyInUse:(ApplicationKey) -> Boolean,
+    isKeyInUse: (ApplicationKey) -> Boolean,
     send: (AcknowledgedConfigMessage) -> Unit,
     resetMessageState: () -> Unit,
 ) {
@@ -91,58 +92,62 @@ internal fun ConfigAppKeysScreen(
             onRefresh = { readApplicationKeys() },
             isRefreshing = messageState.isInProgress() && messageState.message is ConfigAppKeyGet
         ) {
-            when (addedApplicationKeys.isNotEmpty()) {
-                true -> LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(space = 8.dp),
-                ) {
-                    item {
-                        SectionTitle(
-                            modifier = Modifier.padding(top = 8.dp),
-                            title = stringResource(R.string.label_added_application_keys)
-                        )
-                    }
-                    items(
-                        items = addedApplicationKeys,
-                        key = { KeyIdGenerator.nextId() }
-                    ) { key ->
-                        // Hold the current state from the Swipe to Dismiss composable
-                        val dismissState = rememberSwipeToDismissBoxState()
-                        val isInUse = isKeyInUse(key)
-                        SwipeToDismissKey(
-                            isInUse = isInUse,
-                            dismissState = dismissState,
-                            key = key,
-                            onSwiped = {
-                                if (isInUse) {
-                                    keyToDelete = it
-                                    showDeleteConfirmationDialog = true
-                                    scope.launch { dismissState.reset() }
-                                } else {
-                                    if (!messageState.isInProgress()) {
-                                        send(ConfigAppKeyDelete(key = key))
-                                        snackbarHostState.currentSnackbarData?.dismiss()
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(
-                                                message = context.getString(R.string.label_application_key_deleting),
-                                                duration = SnackbarDuration.Short,
-                                            )
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(space = 8.dp),
+            ) {
+                when (addedApplicationKeys.isNotEmpty()) {
+                    true -> {
+                        item {
+                            SectionTitle(
+                                modifier = Modifier.padding(top = 8.dp),
+                                title = stringResource(R.string.label_added_application_keys)
+                            )
+                        }
+                        items(
+                            items = addedApplicationKeys,
+                            key = { KeyIdGenerator.nextId() }
+                        ) { key ->
+                            // Hold the current state from the Swipe to Dismiss composable
+                            val dismissState = rememberSwipeToDismissBoxState()
+                            val isInUse = isKeyInUse(key)
+                            SwipeToDismissKey(
+                                isInUse = isInUse,
+                                dismissState = dismissState,
+                                key = key,
+                                onSwiped = {
+                                    if (isInUse) {
+                                        keyToDelete = it
+                                        showDeleteConfirmationDialog = true
+                                        scope.launch { dismissState.reset() }
+                                    } else {
+                                        if (!messageState.isInProgress()) {
+                                            send(ConfigAppKeyDelete(key = key))
+                                            snackbarHostState.currentSnackbarData?.dismiss()
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(
+                                                    message = context.getString(R.string.label_application_key_deleting),
+                                                    duration = SnackbarDuration.Short,
+                                                )
+                                            }
                                         }
                                     }
                                 }
-                            }
+                            )
+                        }
+                        item { Spacer(modifier = Modifier.size(size = 16.dp)) }
+                    }
+
+                    false -> item {
+                        MeshNoItemsAvailable(
+                            modifier = Modifier.fillParentMaxSize(),
+                            imageVector = Icons.Outlined.VpnKey,
+                            title = stringResource(R.string.label_no_app_keys_added),
+                            rationale = stringResource(R.string.label_no_app_keys_added_rationale)
                         )
                     }
-                    item { Spacer(modifier = Modifier.size(size = 16.dp)) }
                 }
-
-                false -> MeshNoItemsAvailable(
-                    modifier = Modifier.fillMaxSize(),
-                    imageVector = Icons.Outlined.VpnKey,
-                    title = stringResource(R.string.label_no_app_keys_added),
-                    rationale = stringResource(R.string.label_no_app_keys_added_rationale)
-                )
             }
         }
 
@@ -178,7 +183,7 @@ internal fun ConfigAppKeysScreen(
             onAddApplicationKeyClicked = {
                 runCatching {
                     onAddAppKeyClicked()
-                    if(isLocalProvisionerNode) {
+                    if (isLocalProvisionerNode) {
                         scope
                             .launch { bottomSheetState.hide() }
                             .invokeOnCompletion {
@@ -200,7 +205,9 @@ internal fun ConfigAppKeysScreen(
             onDismissClick = {
                 scope
                     .launch { bottomSheetState.hide() }
-                    .invokeOnCompletion { if (!bottomSheetState.isVisible) showBottomSheet = !showBottomSheet }
+                    .invokeOnCompletion {
+                        if (!bottomSheetState.isVisible) showBottomSheet = !showBottomSheet
+                    }
             }
         )
     }

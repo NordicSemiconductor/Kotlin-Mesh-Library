@@ -16,8 +16,14 @@ import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.storage.MeshSecurePropertiesStorage
 import no.nordicsemi.android.nrfmesh.ui.network.ImportState
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigAppKeyAdd
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigModelAppBind
+import no.nordicsemi.kotlin.mesh.core.messages.health.HealthAttentionSetUnacknowledged
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.Model
+import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
+import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import javax.inject.Inject
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -145,7 +151,59 @@ class NetworkViewModel @Inject constructor(
     internal fun onImportErrorAcknowledged() {
         _uiState.update { it.copy(importState = ImportState.Unknown) }
     }
-}
+
+    /**
+     * This method sends a [HealthAttentionSetUnacknowledged] message to the health server model
+     * of the given node to start the attention timer for 3 seconds.
+     *
+     * If the model is not bound to any App Key, a first found on that node will be bound to it.
+     *
+     * If the node does not have any App Keys, a key with Key Index 4095 will be created
+     * (if such does not exist) and bound to the node.
+     *
+     * This new key ensures that no unintended key will be sent to this device just to make it blink.
+     *
+     * @param node The target node.
+     */
+    internal fun startAttentionTimer(node: Node) = node.primaryElement
+        .model(SigModelId(Model.HEALTH_SERVER_MODEL_ID))
+        ?.let { healthServerModel ->
+            viewModelScope.launch {
+                // Is there any App Key bound to the Health Server model?
+                if (healthServerModel.boundApplicationKeys.isEmpty()) {
+                    // Does the node know any App Key?
+                    var firstAppKey = node.applicationKeys.firstOrNull()
+                    if (firstAppKey == null) {
+                        // Usually, the keys are numbered from 0, so it's unlikely that 4095 exists.
+                        val keyIndex = 4095.toUShort()
+                        // Is there already a key with index 4095?
+                        firstAppKey = meshNetwork!!
+                            .applicationKeys
+                            .firstOrNull { it.index == keyIndex }
+                        if (firstAppKey == null) {
+                            // Create such key.
+                            firstAppKey = meshNetwork!!.add(
+                                "Node Identification Key",
+                                index = keyIndex,
+                                boundNetworkKey = node.networkKeys.first()
+                            )
+                        }
+                        // Send it to the node before binding.
+                        repository.send(node, ConfigAppKeyAdd(firstAppKey))
+                    }
+                    // Bind the key. Here it is guaranteed, that the key is known to the node.
+                    repository.send(node, ConfigModelAppBind(
+                        healthServerModel, firstAppKey
+                    ))
+                }
+                // Finally, start the attention timer for 3 seconds.
+                repository.send(
+                    healthServerModel,
+                    HealthAttentionSetUnacknowledged(attentionTimer = 3u)
+                )
+            }
+        }
+    }
 
 internal sealed interface MeshNetworkState {
     data object Loading : MeshNetworkState

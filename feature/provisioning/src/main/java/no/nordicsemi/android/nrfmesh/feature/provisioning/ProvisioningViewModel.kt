@@ -2,10 +2,12 @@ package no.nordicsemi.android.nrfmesh.feature.provisioning
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeviceHub
+import androidx.compose.material.icons.outlined.Timer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
@@ -57,7 +59,7 @@ class ProvisioningViewModel @Inject constructor(
     private var unprovisionedDevice: UnprovisionedDevice? = null
     private var selectedScanResult: ScanResult? = null
     private var selectedNode: Node? = null
-
+    private var shouldReconfigure: Boolean = false
 
     private val _uiState = MutableStateFlow(
         value = ProvisioningScreenUiState(provisionerState = Scanning)
@@ -120,7 +122,8 @@ class ProvisioningViewModel @Inject constructor(
     /**
      * Starts the provisioning process by identifying the node
      */
-    internal fun beginProvisioning() {
+    internal fun beginProvisioning(shouldReconfigure: Boolean = false) {
+        this@ProvisioningViewModel.shouldReconfigure = shouldReconfigure
         val scanResult = selectedScanResult ?: return
         viewModelScope.launch {
             val device = UnprovisionedDevice
@@ -140,6 +143,7 @@ class ProvisioningViewModel @Inject constructor(
                         identifyNode(unprovisionedDevice = device, bearer = pbGattBearer)
                     }
                 }.onCompletion {
+                    this@ProvisioningViewModel.shouldReconfigure = false
                     _uiState.update {
                         it.copy(provisionerState = Disconnected(unprovisionedDevice = device))
                     }
@@ -340,25 +344,29 @@ class ProvisioningViewModel @Inject constructor(
         messenger.enqueueTask(
             task = ConfigTask(
                 icon = Icons.Outlined.DeviceHub,
-                label = "Reading composition of the node",
+                label = "Reading composition data",
                 message = ConfigCompositionDataGet(page = 0x00u)
             )
         )
-        if (_uiState.value.developerSettings.alwaysReconfigure) {
+        if (_uiState.value.developerSettings.alwaysReconfigure || shouldReconfigure) {
+            shouldReconfigure = false
             selectedNode?.let {
                 messenger.enqueueReconfigurationWith(originalNode = it)
             }
         } else {
             messenger.enqueueTask(
                 task = ConfigTask(
-                    icon = Icons.Outlined.DeviceHub,
-                    label = "Reading composition of the node",
+                    icon = Icons.Outlined.Timer,
+                    label = "Reading default TTL",
                     message = ConfigDefaultTtlGet()
                 )
             )
         }
-        disconnect()
-        repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
+        viewModelScope.launch {
+            repository.disconnect()
+            _uiState.update { it.copy(provisionerState = Scanning) }
+            repository.startAutomaticConnectivity(meshNetwork = meshNetwork)
+        }
     }
 
     /**

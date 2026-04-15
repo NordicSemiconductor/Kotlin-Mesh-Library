@@ -8,18 +8,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AddLink
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -31,11 +21,9 @@ import no.nordicsemi.android.nrfmesh.core.common.Utils.describe
 import no.nordicsemi.android.nrfmesh.core.common.isGenericLevelServer
 import no.nordicsemi.android.nrfmesh.core.common.isGenericOnOffServer
 import no.nordicsemi.android.nrfmesh.core.common.isVendorModel
-import no.nordicsemi.android.nrfmesh.core.data.models.ModelData
-import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.MeshMessageStatusDialog
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
-import no.nordicsemi.android.nrfmesh.feature.bind.appkeys.BindAppKeysScreen
+import no.nordicsemi.android.nrfmesh.feature.model.common.BoundApplicationKeys
 import no.nordicsemi.android.nrfmesh.feature.model.common.CommonInformation
 import no.nordicsemi.android.nrfmesh.feature.model.common.Publication
 import no.nordicsemi.android.nrfmesh.feature.model.common.Subscriptions
@@ -103,6 +91,7 @@ internal fun ModelScreen(
                 if (model.supportsModelPublication != false && model.supportsModelSubscription != false) {
                     BoundApplicationKeys(
                         model = model,
+                        messageState = messageState,
                         navigateToConfigApplicationKeys = navigateToConfigApplicationKeys,
                         send = send
                     )
@@ -174,73 +163,5 @@ internal fun ModelScreen(
         }
 
         else -> {}
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
-@Composable
-internal fun BoundApplicationKeys(
-    model: Model,
-    navigateToConfigApplicationKeys: (Uuid) -> Unit,
-    send: (AcknowledgedConfigMessage) -> Unit,
-) {
-    val bottomSheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = model.boundApplicationKeys.isEmpty()
-    )
-    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
-    ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Outlined.AddLink,
-        title = stringResource(R.string.label_bind_application_keys),
-        subtitle = "${model.boundApplicationKeys.size} key(s) are bound",
-        onClick = { showBottomSheet = !showBottomSheet }
-    )
-    if (showBottomSheet) {
-        ModalBottomSheet(
-            containerColor = MaterialTheme.colorScheme.surface,
-            sheetState = bottomSheetState,
-            onDismissRequest = { showBottomSheet = !showBottomSheet },
-            content = {
-                BindAppKeysScreen(
-                    model = model,
-                    send = send,
-                    navigateToConfigApplicationKeys = navigateToConfigApplicationKeys
-                )
-            }
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
-@Composable
-internal fun BoundApplicationKeys(
-    model: Model,
-    modelData: ModelData,
-    navigateToConfigApplicationKeys: (Uuid) -> Unit,
-    send: (AcknowledgedConfigMessage) -> Unit,
-) {
-    val bottomSheetState =
-        rememberModalBottomSheetState(skipPartiallyExpanded = modelData.boundApplicationKeys.isEmpty())
-    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
-    ElevatedCardItem(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        imageVector = Icons.Outlined.AddLink,
-        title = stringResource(R.string.label_bind_application_keys),
-        subtitle = "${modelData.boundApplicationKeys.size} key(s) are bound",
-        onClick = { showBottomSheet = !showBottomSheet }
-    )
-    if (showBottomSheet) {
-        ModalBottomSheet(
-            containerColor = MaterialTheme.colorScheme.surface,
-            sheetState = bottomSheetState,
-            onDismissRequest = { showBottomSheet = !showBottomSheet },
-            content = {
-                BindAppKeysScreen(
-                    model = model,
-                    send = send,
-                    navigateToConfigApplicationKeys = navigateToConfigApplicationKeys
-                )
-            }
-        )
     }
 }

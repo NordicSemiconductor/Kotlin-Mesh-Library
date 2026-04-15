@@ -89,9 +89,9 @@ class GenericMoveSetUnacknowledged(
         transitionParams = null
     )
 
-    override fun toString() = "GenericMoveSetUnacknowledged(tid: $tid, level: $deltaLevel, " +
+    override fun toString() = "GenericMoveSetUnacknowledged(tid: $tid, deltaLevel: $deltaLevel" +
             if (transitionTime != null && delay != null) {
-                "transitionTime: $transitionTime, delay: ${delay.toInt() * 5} ms)"
+                ", transitionTime: $transitionTime, delay: ${delay.toInt() * 5} ms)"
             } else ")"
 
     companion object Initializer : GenericMessageInitializer {

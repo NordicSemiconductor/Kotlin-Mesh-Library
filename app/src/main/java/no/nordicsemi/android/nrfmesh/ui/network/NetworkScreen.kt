@@ -5,9 +5,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,11 +16,13 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PersonPin
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,7 +46,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -58,10 +57,12 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.scene.rememberSceneState
 import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.launch
+import no.nordicsemi.android.common.theme.nordicSun
 import no.nordicsemi.android.common.ui.view.NordicAppBar
 import no.nordicsemi.android.nrfmesh.R
 import no.nordicsemi.android.nrfmesh.core.navigation.MESH_TOP_LEVEL_NAV_ITEMS
 import no.nordicsemi.android.nrfmesh.core.navigation.Navigator
+import no.nordicsemi.android.nrfmesh.core.navigation.NodeKey
 import no.nordicsemi.android.nrfmesh.core.navigation.SettingsKey
 import no.nordicsemi.android.nrfmesh.core.navigation.toEntries
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
@@ -78,9 +79,11 @@ import no.nordicsemi.android.nrfmesh.navigation.MeshAppState
 import no.nordicsemi.android.nrfmesh.viewmodel.MeshNetworkState
 import no.nordicsemi.android.nrfmesh.viewmodel.NetworkScreenUiState
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
+import no.nordicsemi.kotlin.mesh.core.model.Node
 import no.nordicsemi.kotlin.mesh.core.model.Provisioner
 import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Composable
 internal fun NetworkScreen(
@@ -94,6 +97,7 @@ internal fun NetworkScreen(
     navigateToWizard: () -> Unit,
     isCompactWidth: Boolean = isCompactWidth(),
     resetMeshNetworkUiState: () -> Unit,
+    startAttentionTimer: (Node) -> Unit,
 ) {
     when (uiState.networkState) {
         MeshNetworkState.Loading -> {
@@ -125,7 +129,8 @@ internal fun NetworkScreen(
                 resetNetwork = resetNetwork,
                 navigateToWizard = navigateToWizard,
                 topAppBarTitle = topAppBarTitle,
-                onImportErrorAcknowledged = onImportErrorAcknowledged
+                onImportErrorAcknowledged = onImportErrorAcknowledged,
+                startAttentionTimer = startAttentionTimer,
             )
         }
 
@@ -159,13 +164,14 @@ private fun NetworkContent(
     resetNetwork: () -> Unit,
     topAppBarTitle: String,
     navigateToWizard: () -> Unit,
+    startAttentionTimer: (Node) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val selectProvisionerSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
-    var menuExpanded by remember { mutableStateOf(false) }
     var showExportBottomSheet by rememberSaveable { mutableStateOf(false) }
     val exportSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showResetNetworkDialog by rememberSaveable { mutableStateOf(false) }
+    var showAutoConfigurationHealthServerDialog by rememberSaveable { mutableStateOf(false) }
     val navigator = remember { Navigator(appState.navigationState) }
     NavigationSuiteScaffold(
         navigationItemVerticalArrangement = Arrangement.Center,
@@ -180,7 +186,8 @@ private fun NetworkContent(
                             imageVector = when (selected) {
                                 true -> navItem.selectedIcon
                                 false -> navItem.unselectedIcon
-                            }, contentDescription = null
+                            },
+                            contentDescription = null
                         )
                     },
                     label = {
@@ -193,7 +200,7 @@ private fun NetworkContent(
             }
         }
     ) {
-        val litDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
+        val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
         val entryProvider = entryProvider {
             nodesEntry(appState = appState, navigator = navigator)
             provisioningEntry(appState = appState, navigator = navigator)
@@ -203,7 +210,8 @@ private fun NetworkContent(
         }
         val entries = appState.navigationState.toEntries(entryProvider = entryProvider)
         val sceneState = rememberSceneState(
-            entries = entries, sceneStrategy = litDetailStrategy, onBack = { navigator.goBack() })
+            entries = entries, sceneStrategy = listDetailStrategy, onBack = navigator::goBack
+        )
         val scene = sceneState.currentScene
         Scaffold(
             snackbarHost = { SnackbarHost(hostState = appState.snackbarHostState) },
@@ -222,23 +230,59 @@ private fun NetworkContent(
                         repeat(entries.size - scene.previousEntries.size) { navigator.goBack() }
                     },
                     actions = {
-                        DisplayDropdown(
-                            appState = appState,
-                            menuExpanded = menuExpanded,
-                            onExpandPressed = { menuExpanded = true },
-                            onDismissRequest = { menuExpanded = false },
-                            importNetwork = { uri, contentResolver ->
-                                importNetwork(uri, contentResolver)
-                            },
-                            navigateToExport = {
-                                menuExpanded = false
-                                showExportBottomSheet = true
-                            },
-                            onResetNetworkClicked = {
-                                menuExpanded = false
-                                showResetNetworkDialog = true
+                        // We have to consider two conditions when displaying the dropdown in the settings screen
+                        // 1. Current key destination is settings key
+                        // 2. For non-compact width devices the dropdown must be displayed irrespective of where you
+                        //    are in the settings screen
+                        if (appState.navigationState.currentKey is SettingsKey ||
+                            appState.navigationState.currentTopLevelKey is SettingsKey && !isCompactWidth()
+                        ) {
+                            var menuExpanded by remember { mutableStateOf(false) }
+                            DisplayDropdown(
+                                menuExpanded = menuExpanded,
+                                onExpandPressed = { menuExpanded = true },
+                                onDismissRequest = { menuExpanded = false },
+                                importNetwork = { uri, contentResolver ->
+                                    importNetwork(uri, contentResolver)
+                                },
+                                navigateToExport = {
+                                    menuExpanded = false
+                                    showExportBottomSheet = true
+                                },
+                                onResetNetworkClicked = {
+                                    menuExpanded = false
+                                    showResetNetworkDialog = true
+                                }
+                            )
+                        }
+                        // On Node screen, show items for Identify and Configure.
+                        val nodeUuid =
+                            (appState.navigationState.currentKey as? NodeKey)?.nodeUuid
+                                ?: appState.navigationState.currentSubStack
+                                    .firstNotNullOfOrNull { (it as? NodeKey)?.nodeUuid }
+                                    ?.takeIf { !isCompactWidth() }
+                        val node = nodeUuid?.let { network.node(Uuid.parse(it)) }
+                        if (node != null) {
+                            IconButton(
+                                onClick = {
+                                    val healthServerModel =
+                                        node.primaryElement.models.firstOrNull { it.isHealthServer }
+                                            ?: return@IconButton
+                                    val hasBoundKeys =
+                                        healthServerModel.boundApplicationKeys.isNotEmpty()
+                                    if (hasBoundKeys) {
+                                        startAttentionTimer(node)
+                                    } else {
+                                        showAutoConfigurationHealthServerDialog = true
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.NotificationsActive,
+                                    contentDescription = null
+                                )
                             }
-                        )
+                        }
                     }
                 )
             }
@@ -248,7 +292,7 @@ private fun NetworkContent(
                     .fillMaxSize()
                     .padding(paddingValues = padding),
                 entries = appState.navigationState.toEntries(entryProvider = entryProvider),
-                sceneStrategy = litDetailStrategy,
+                sceneStrategy = listDetailStrategy,
                 onBack = navigator::goBack
             )
         }
@@ -269,7 +313,7 @@ private fun NetworkContent(
                 onDismissClick = { showResetNetworkDialog = false },
                 onDismissRequest = { showResetNetworkDialog = false })
         }
-        if(importState is ImportState.Completed && importState.error != null) {
+        if (importState is ImportState.Completed && importState.error != null) {
             MeshAlertDialog(
                 icon = Icons.Outlined.Download,
                 iconColor = Color.Red,
@@ -282,6 +326,28 @@ private fun NetworkContent(
                 dismissButtonText = null,
                 onDismissRequest = onImportErrorAcknowledged
             )
+        }
+        if (showAutoConfigurationHealthServerDialog) {
+            val nodeUuid =
+                (appState.navigationState.currentKey as? NodeKey)?.nodeUuid
+                    ?: appState.navigationState.currentSubStack
+                        .firstNotNullOfOrNull { (it as? NodeKey)?.nodeUuid }
+                        ?.takeIf { !isCompactWidth() }
+            val node = nodeUuid?.let { network.node(Uuid.parse(it)) }
+            if (node != null) {
+                MeshAlertDialog(
+                    icon = Icons.Outlined.NotificationsActive,
+                    iconColor = nordicSun,
+                    title = stringResource(R.string.label_identify),
+                    text = stringResource(R.string.label_identify_rationale),
+                    onConfirmClick = {
+                        showAutoConfigurationHealthServerDialog = false
+                        startAttentionTimer(node)
+                    },
+                    onDismissClick = { showAutoConfigurationHealthServerDialog = false },
+                    onDismissRequest = { showAutoConfigurationHealthServerDialog = false }
+                )
+            }
         }
         if (showExportBottomSheet) {
             ModalBottomSheet(
@@ -349,7 +415,6 @@ private fun NetworkContent(
 
 @Composable
 private fun DisplayDropdown(
-    appState: MeshAppState,
     menuExpanded: Boolean,
     onExpandPressed: () -> Unit,
     onDismissRequest: () -> Unit,
@@ -365,74 +430,49 @@ private fun DisplayDropdown(
             importNetwork(uri, context.contentResolver)
         }
     }
-    // We have to consider two conditions when displaying the dropdown in the settings screen
-    // 1. Current key destination is settings key
-    // 2. For non-compact width devices the dropdown must be displayed irrespective of where you
-    //    are in the settings screen
-    if (appState.navigationState.currentKey is SettingsKey ||
-        appState.navigationState.currentTopLevelKey is SettingsKey && !isCompactWidth()
+    IconButton(onClick = onExpandPressed) {
+        Icon(
+            imageVector = Icons.Filled.MoreVert,
+            contentDescription = null
+        )
+    }
+    DropdownMenu(
+        expanded = menuExpanded,
+        onDismissRequest = onDismissRequest
     ) {
-        Box(
-            modifier = Modifier
-                .padding(start = 16.dp)
-                .padding(vertical = 16.dp)
-        ) {
-            IconButton(
-                onClick = onExpandPressed,
-                content = { Icon(imageVector = Icons.Filled.MoreVert, contentDescription = null) })
-            DropdownMenu(expanded = menuExpanded, onDismissRequest = onDismissRequest) {
-                DropdownMenuItem(
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            Icon(imageVector = Icons.Outlined.Download, contentDescription = null)
-                            Text(
-                                modifier = Modifier.padding(start = 16.dp),
-                                text = stringResource(R.string.label_import)
-                            )
-                        }
-                    },
-                    onClick = {
-                        fileLauncher.launch("application/json")
-                        onDismissRequest()
-                    }
+        DropdownMenuItem(
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.Download,
+                    contentDescription = null
                 )
-                DropdownMenuItem(
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            Icon(imageVector = Icons.Outlined.Upload, contentDescription = null)
-                            Text(
-                                modifier = Modifier.padding(start = 16.dp),
-                                text = stringResource(R.string.label_export)
-                            )
-                        }
-                    },
-                    onClick = navigateToExport
-                )
-                DropdownMenuItem(
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.DeleteForever,
-                                contentDescription = null
-                            )
-                            Text(
-                                modifier = Modifier.padding(start = 16.dp),
-                                text = stringResource(R.string.label_reset_network)
-                            )
-                        }
-                    },
-                    onClick = dropUnlessResumed { onResetNetworkClicked() }
-                )
+            },
+            text = { Text(text = stringResource(R.string.label_import)) },
+            onClick = dropUnlessResumed {
+                fileLauncher.launch("application/json")
+                onDismissRequest()
             }
-        }
+        )
+        DropdownMenuItem(
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.Upload,
+                    contentDescription = null
+                )
+            },
+            text = { Text(text = stringResource(R.string.label_export)) },
+            onClick = dropUnlessResumed { navigateToExport() }
+        )
+        HorizontalDivider()
+        DropdownMenuItem(
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.DeleteForever,
+                    contentDescription = null
+                )
+            },
+            text = { Text(text = stringResource(R.string.label_reset_network)) },
+            onClick = dropUnlessResumed { onResetNetworkClicked() }
+        )
     }
 }
