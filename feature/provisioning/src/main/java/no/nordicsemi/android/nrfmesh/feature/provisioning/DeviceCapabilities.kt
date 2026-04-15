@@ -27,7 +27,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -53,7 +52,6 @@ import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItem
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemHexTextField
 import no.nordicsemi.android.nrfmesh.core.ui.ElevatedCardItemTextField
-import no.nordicsemi.android.nrfmesh.core.ui.MeshSingleLineListItem
 import no.nordicsemi.android.nrfmesh.core.ui.SectionTitle
 import no.nordicsemi.android.nrfmesh.core.ui.showSnackbar
 import no.nordicsemi.kotlin.mesh.core.model.Address
@@ -258,55 +256,54 @@ private fun NetworkKeyRow(
         modifier = Modifier.padding(horizontal = 16.dp),
         expanded = isExpanded,
         onExpandedChange = { isExpanded = it },
-        content = {
-            ElevatedCardItem(
-                modifier = Modifier
-                    .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable),
-                imageVector = Icons.Outlined.VpnKey,
-                title = stringResource(R.string.label_network_key),
-                titleAction = {
-                    IconButton(
-                        modifier = Modifier.rotate(if (isExpanded) 180f else 0f),
-                        onClick = { isExpanded = true },
-                        content = {
-                            Icon(
-                                imageVector = Icons.Outlined.ArrowDropDown,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    )
-                },
-                subtitle = name
-            )
-            DropdownMenu(
-                modifier = Modifier.exposedDropdownSize(),
-                expanded = isExpanded,
-                onDismissRequest = { isExpanded = false }
-            ) {
-                networkKeys.forEachIndexed { index, key ->
-                    DropdownMenuItem(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                        text = {
-                            MeshSingleLineListItem(
-                                imageVector = Icons.Outlined.VpnKey,
-                                title = key.name
-                            )
-                        },
-                        onClick = {
-                            name = key.name
-                            onNetworkKeyClick(key)
-                            isExpanded = false
-                        }
-                    )
-                    if (index < networkKeys.size - 1) {
-                        HorizontalDivider()
+    ) {
+        ElevatedCardItem(
+            modifier = Modifier
+                .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+            imageVector = Icons.Outlined.VpnKey,
+            title = stringResource(R.string.label_network_key),
+            titleAction = {
+                IconButton(
+                    modifier = Modifier.rotate(if (isExpanded) 180f else 0f),
+                    onClick = { isExpanded = true },
+                    content = {
+                        Icon(
+                            imageVector = Icons.Outlined.ArrowDropDown,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
-                }
+                )
+            },
+            subtitle = name
+        )
+        DropdownMenu(
+            modifier = Modifier.exposedDropdownSize(),
+            expanded = isExpanded,
+            onDismissRequest = { isExpanded = false }
+        ) {
+            networkKeys.forEachIndexed { index, key ->
+                DropdownMenuItem(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.VpnKey,
+                            contentDescription = null
+                        )
+                    },
+                    text = {
+                        Text(text = key.name)
+                    },
+                    onClick = {
+                        name = key.name
+                        onNetworkKeyClick(key)
+                        isExpanded = false
+                    }
+                )
             }
         }
-    )
+    }
 }
 
 @Composable

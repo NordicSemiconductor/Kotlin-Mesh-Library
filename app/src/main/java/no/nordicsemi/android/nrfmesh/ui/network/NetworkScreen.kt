@@ -22,6 +22,7 @@ import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -462,6 +463,7 @@ private fun DisplayDropdown(
             text = { Text(text = stringResource(R.string.label_export)) },
             onClick = dropUnlessResumed { navigateToExport() }
         )
+        HorizontalDivider()
         DropdownMenuItem(
             leadingIcon = {
                 Icon(
