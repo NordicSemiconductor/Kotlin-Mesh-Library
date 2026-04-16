@@ -93,11 +93,11 @@ class MeshNetworkManager(
 ) : Publisher {
     internal val scope = CoroutineScope(context = SupervisorJob() + ioDispatcher)
     private val mutex by lazy { Mutex() }
+    var networkParameters = NetworkParameters()
+    /** Teh currently loaded mesh network. */
+    internal var network: MeshNetwork? = null
     private val _meshNetwork = MutableStateFlow<MeshNetwork?>(null)
     val meshNetwork = _meshNetwork.asStateFlow()
-    var networkParameters = NetworkParameters()
-    internal val network: MeshNetwork?
-        get() = _meshNetwork.value
 
     internal var observeNetworkManagerEvents: Job? = null
     internal var observeMeshMessages: Job? = null
@@ -182,12 +182,12 @@ class MeshNetworkManager(
         .load()
         .takeIf { it.isNotEmpty() }
         ?.let {
-            val meshNetwork = deserialize(it)
-                // Load the IvIndex from the secure properties storage.
+            network = deserialize(it)
+                // Load the IvIndex from the secure properties' storage.
                 .apply { ivIndex = secureProperties.ivIndex(uuid = uuid) }
             networkManager = NetworkManager(manager = this)
             proxyFilter.onNewNetworkCreated()
-            _meshNetwork.update { meshNetwork }
+            _meshNetwork.update { network }
             true
         } == true
 
@@ -268,6 +268,7 @@ class MeshNetworkManager(
                 network.add(name = "Primary Network Key", index = 0u)
             }
             network.add(provisioner)
+            this.network = network
             networkManager = NetworkManager(this)
             // Store the IvIndex of the newly created network.
             secureProperties.storeLocalProvisioner(
@@ -287,6 +288,7 @@ class MeshNetworkManager(
      */
     suspend fun clear() {
         networkManager = null
+        network = null
         _meshNetwork.update { null }
         mutex.withLock { storage.save(network = byteArrayOf()) }
     }
@@ -302,6 +304,7 @@ class MeshNetworkManager(
     suspend fun import(array: ByteArray) = runCatching {
         deserialize(array)
             .also { network ->
+                this.network = network
                 networkManager = NetworkManager(this)
                 proxyFilter.onNewNetworkCreated()
                 _meshNetwork.update { network }
