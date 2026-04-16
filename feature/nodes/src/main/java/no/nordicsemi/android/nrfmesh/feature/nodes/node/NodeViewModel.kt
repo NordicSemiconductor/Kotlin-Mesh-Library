@@ -151,9 +151,7 @@ internal class NodeViewModel @AssistedInject internal constructor(
      */
     internal fun onExcluded(exclude: Boolean) {
         selectedNode.excluded = exclude
-        viewModelScope.launch {
-            repository.save()
-        }
+        repository.save()
     }
 
     internal fun onItemSelected(item: ClickableNodeInfoItem) {
@@ -202,9 +200,7 @@ internal class NodeViewModel @AssistedInject internal constructor(
     }
 
     fun save() {
-        viewModelScope.launch {
-            repository.save()
-        }
+        repository.save()
     }
 
     @AssistedFactory
