@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -30,6 +31,7 @@ import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeState
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.NodeViewModel
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.element.navigation.ElementKey
 import no.nordicsemi.android.nrfmesh.feature.nodes.node.element.navigation.elementEntry
+import no.nordicsemi.kotlin.mesh.core.messages.foundation.configuration.ConfigNodeResetStatus
 import kotlin.uuid.ExperimentalUuidApi
 
 @OptIn(ExperimentalUuidApi::class, ExperimentalMaterial3AdaptiveApi::class)
@@ -51,6 +53,20 @@ fun EntryProviderScope<NavKey>.nodeEntry(appState: AppState, navigator: Navigato
             it.create(uuid = uuid)
         }
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        LaunchedEffect(
+            uiState
+                .run { messageState.didSucceed() && messageState.response is ConfigNodeResetStatus }
+        ) {
+            uiState
+                .takeIf { it.messageState.didSucceed() && it.messageState.response is ConfigNodeResetStatus }
+                ?.let {
+                    // We navigate to the top level key instead of going back and this will clear
+                    // the substack. This is due to the list detail scene strategy on the tablet
+                    // may be one entry ahead in the back stack.
+                    navigator.navigate(key = NodesKey)
+                }
+        }
+
         when (uiState.nodeState) {
             is NodeState.Success -> {
                 NodeScreen(
