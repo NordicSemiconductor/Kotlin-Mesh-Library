@@ -272,8 +272,8 @@ private fun NetworkTransmit(
                     null -> stringResource(R.string.unknown)
                     else -> pluralStringResource(
                         R.plurals.label_transmissions_count,
-                        interval.roundToInt(),
-                        interval.roundToInt()
+                        transmissions.roundToInt(),
+                        transmissions.roundToInt()
                     )
                 },
                 textAlign = TextAlign.End
