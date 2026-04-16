@@ -2,6 +2,7 @@
 
 package no.nordicsemi.android.nrfmesh.feature.nodes
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -26,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -45,32 +47,19 @@ internal fun NodesScreen(
     navigateToNode: (Uuid) -> Unit,
     addNode: () -> Unit,
 ) {
-    when (uiState.nodes.isEmpty()) {
-        true -> MeshNoItemsAvailable(
-            imageVector = Icons.Outlined.AutoAwesome,
-            title = stringResource(R.string.no_nodes_currently_added)
-        )
-
-        false -> Nodes(
-            nodes = uiState.nodes,
-            navigateToNode = navigateToNode,
-            addNode = addNode
-        )
-    }
-}
-
-@OptIn(ExperimentalUuidApi::class)
-@Composable
-private fun Nodes(
-    nodes: List<Node>,
-    navigateToNode: (Uuid) -> Unit,
-    addNode: () -> Unit,
-) {
     Box(modifier = Modifier.fillMaxSize()) {
-        NodesList(
-            nodes = nodes,
-            navigateToNode = navigateToNode
-        )
+        when (uiState.nodes.isEmpty()) {
+            true -> MeshNoItemsAvailable(
+                modifier = Modifier.fillMaxSize(),
+                imageVector = Icons.Outlined.AutoAwesome,
+                title = stringResource(R.string.no_nodes_currently_added)
+            )
+
+            false -> NodesList(
+                nodes = uiState.nodes,
+                navigateToNode = navigateToNode
+            )
+        }
         ExtendedFloatingActionButton(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
@@ -95,7 +84,6 @@ private fun NodesList(
     nodes: List<Node>,
     navigateToNode: (Uuid) -> Unit,
 ) {
-
     if (isCompactWidth()) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
