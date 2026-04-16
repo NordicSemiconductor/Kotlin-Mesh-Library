@@ -40,7 +40,6 @@ fun EntryProviderScope<NavKey>.modelEntry(appState: AppState, navigator: Navigat
             onAddGroupClicked = { navigator.navigate(GroupsKey) },
             resetMessageState = viewModel::resetMessageState,
             navigateToGroups = { navigator.navigate(key = GroupsKey) },
-            navigateToConfigApplicationKeys = {},
             send = viewModel::send,
             sendApplicationMessage = viewModel::sendApplicationMessage
         )
