@@ -14,6 +14,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -84,6 +85,7 @@ import java.io.BufferedReader
 import java.util.Locale
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -464,6 +466,9 @@ class CoreDataRepository @Inject constructor(
                 val bearer = meshBearer ?: scanForGattProxy()
                 open(bearer)
                 awaitDisconnection(bearer)
+                // Added a 1500 second delay to avoid any reconnects
+                // Clarify this against scan results from gatt proxy
+                delay(1500.milliseconds)
             }
             connectivityJob = null
         }
@@ -752,6 +757,6 @@ sealed class NetworkConnectionState {
 }
 
 data class ProxyConnectionState(
-    val autoConnect: Boolean = true,
+    val autoConnect: Boolean = false, // Auto connect is disabled due to missing permissions
     val connectionState: NetworkConnectionState = NetworkConnectionState.Disconnected,
 )
