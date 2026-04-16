@@ -358,7 +358,7 @@ internal class NetworkManager internal constructor(
             destination = destination,
             ttl = initialTtl,
             applicationKey = applicationKey,
-            retransmit = true
+            retransmit = false
         ).also {
             mutex.withLock { outgoingMessages.remove(destination) }
         }
