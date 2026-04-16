@@ -11,6 +11,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
@@ -224,6 +225,7 @@ class ProvisioningViewModel @Inject constructor(
 
         // Observe state changes.
         pbBearerStateObserverJob = pbBearer.state
+            .drop(1)
             .onEach { event ->
                 when (event) {
                     is BearerEvent.Opened -> {
@@ -253,7 +255,6 @@ class ProvisioningViewModel @Inject constructor(
      */
     internal fun disconnect() {
         viewModelScope.launch {
-            // TODO Check this
             pbBearer?.close()
             pbBearerStateObserverJob?.cancel()
             pbBearer = null
@@ -364,7 +365,7 @@ class ProvisioningViewModel @Inject constructor(
         )
         originalNode?.let {
             messenger.enqueueReconfigurationWith(it)
-        } ?: {
+        } ?: run {
             messenger.enqueueTask(
                 task = ConfigTask(
                     icon = Icons.Outlined.Timer,

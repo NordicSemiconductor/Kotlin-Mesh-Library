@@ -60,6 +60,7 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfigur
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -184,9 +185,9 @@ class MeshNetworkManager(
             val meshNetwork = deserialize(it)
                 // Load the IvIndex from the secure properties storage.
                 .apply { ivIndex = secureProperties.ivIndex(uuid = uuid) }
-            _meshNetwork.emit(value = meshNetwork)
             networkManager = NetworkManager(manager = this)
             proxyFilter.onNewNetworkCreated()
+            _meshNetwork.update { meshNetwork }
             true
         } == true
 
@@ -194,11 +195,16 @@ class MeshNetworkManager(
      * Saves the network in the local storage provided by the user.
      */
     @OptIn(ExperimentalTime::class, ExperimentalUuidApi::class)
-    suspend fun save() = export()
-        ?.also {
-            mutex.withLock { storage.save(network = it) }
-            _meshNetwork.update { network?.copy() }
+    suspend fun save() {
+        _meshNetwork.update {
+            network?.copy(
+                _timestamp = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+            )
         }
+        export()?.let {
+            mutex.withLock { storage.save(network = it) }
+        }
+    }
 
     /**
      * Creates a Mesh Network with a given name and a UUID. If a UUID is not provided a random will
@@ -296,9 +302,9 @@ class MeshNetworkManager(
     suspend fun import(array: ByteArray) = runCatching {
         deserialize(array)
             .also { network ->
-                _meshNetwork.update { network }
                 networkManager = NetworkManager(this)
                 proxyFilter.onNewNetworkCreated()
+                _meshNetwork.update { network }
             }
     }.getOrElse {
         if (it is ImportError) throw it
@@ -1031,7 +1037,7 @@ class MeshNetworkManager(
                 }
                 throw CannotDelete()
             }
-            logger?.e(LogCategory.FOUNDATION_MODEL) {
+            logger?.e(LogCategory.PROXY) {
                 "No GATT Proxy connected or no common Network Keys"
             }
             throw CannotRelay()

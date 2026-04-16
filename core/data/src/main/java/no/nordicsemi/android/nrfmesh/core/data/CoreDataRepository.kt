@@ -491,8 +491,15 @@ class CoreDataRepository @Inject constructor(
         val meshNetwork = requireNotNull(meshNetwork) { throw NoNetwork() }
         val node = requireNotNull(meshNetwork.node(uuid = uuid)) { throw DoesNotBelongToNetwork() }
         ioScope.launch {
+            cancelAutomaticConnectivity()
+            // open(bearer) below will close any existing bearer.
+
             val bearer = scanForGattProxy(address = node.primaryUnicastAddress)
             open(bearer)
+
+            if (isAutoConnectEnabled) {
+                startAutomaticConnectivity()
+            }
         }
     }
 
