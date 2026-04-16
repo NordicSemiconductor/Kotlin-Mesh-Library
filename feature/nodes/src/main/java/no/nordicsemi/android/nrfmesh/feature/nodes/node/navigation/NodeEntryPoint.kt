@@ -33,10 +33,7 @@ import no.nordicsemi.android.nrfmesh.feature.nodes.node.element.navigation.eleme
 import kotlin.uuid.ExperimentalUuidApi
 
 @OptIn(ExperimentalUuidApi::class, ExperimentalMaterial3AdaptiveApi::class)
-fun EntryProviderScope<NavKey>.nodeEntry(
-    appState: AppState,
-    navigator: Navigator,
-) {
+fun EntryProviderScope<NavKey>.nodeEntry(appState: AppState, navigator: Navigator) {
     entry<NodeKey>(
         metadata = ListDetailSceneStrategy.listPane(
             sceneKey = NodeListDetailSceneKey,
@@ -93,7 +90,7 @@ fun EntryProviderScope<NavKey>.nodeEntry(
             }
         }
     }
-    configNetKeysEntry(appState = appState, navigator = navigator)
-    configAppKeysEntry(appState = appState, navigator = navigator)
+    configNetKeysEntry(appState = appState)
+    configAppKeysEntry(appState = appState)
     elementEntry(appState = appState, navigator = navigator)
 }

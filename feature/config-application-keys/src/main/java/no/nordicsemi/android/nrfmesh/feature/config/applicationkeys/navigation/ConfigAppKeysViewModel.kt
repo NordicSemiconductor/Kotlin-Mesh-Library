@@ -61,7 +61,8 @@ internal class ConfigAppKeysViewModel @AssistedInject internal constructor(
     private fun observeNetworkChanges() = repository.network
         .filterNotNull()
         .onEach { network ->
-            this@ConfigAppKeysViewModel.selectedNode = network.node(uuid = nodeUuid) ?: return@onEach
+            this@ConfigAppKeysViewModel.selectedNode =
+                network.node(uuid = nodeUuid) ?: return@onEach
             _uiState.update { state ->
                 state.copy(
                     isLocalProvisionerNode = selectedNode.isLocalProvisioner,
@@ -182,14 +183,10 @@ internal class ConfigAppKeysViewModel @AssistedInject internal constructor(
         _uiState.value = _uiState.value.copy(messageState = NotStarted)
     }
 
-    internal fun addApplicationKey() = repository.addApplicationKey(
-        boundNetworkKey = meshNetwork.networkKeys.first()
-    )
-
-    fun save() {
-        viewModelScope.launch {
-            repository.save()
-        }
+    internal fun addApplicationKey() = viewModelScope.launch {
+        repository.addApplicationKey(
+            boundNetworkKey = meshNetwork.networkKeys.first()
+        )
     }
 
     @AssistedFactory

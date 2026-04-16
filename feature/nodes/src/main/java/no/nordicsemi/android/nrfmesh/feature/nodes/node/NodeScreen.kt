@@ -369,7 +369,6 @@ private fun ApplicationKeysRow(
             true -> CardDefaults.outlinedCardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             )
-
             else -> CardDefaults.outlinedCardColors()
         },
         onClick = onApplicationKeysClicked,
