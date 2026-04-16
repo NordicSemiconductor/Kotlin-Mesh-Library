@@ -2,7 +2,6 @@
 
 package no.nordicsemi.android.nrfmesh.feature.provisioning
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -81,47 +80,6 @@ internal fun ProvisioningScreen(
     onAddressChanged: (Address) -> Unit,
     isValidAddress: (Address) -> Boolean,
     onNetworkKeyClicked: (NetworkKey) -> Unit,
-    onAuthenticationMethodSelected: (AuthenticationMethod) -> Unit,
-    authenticate: (AuthAction, String) -> Unit,
-    onProvisioningComplete: (Uuid) -> Unit,
-    onProvisioningFailed: () -> Unit,
-    disconnect: () -> Unit,
-    onScanResultSelected: (ScanResult) -> Boolean,
-) {
-    BackHandler(
-        enabled = uiState.provisionerState is ProvisionerState.Connecting ||
-                uiState.provisionerState is ProvisionerState.Connected ||
-                uiState.provisionerState is ProvisionerState.Identifying ||
-                uiState.provisionerState is ProvisionerState.Provisioning ||
-                uiState.provisionerState is ProvisionerState.Disconnected
-    ) {
-        disconnect()
-    }
-    ProvisionerContent(
-        uiState = uiState,
-        beginProvisioning = beginProvisioning,
-        onNameChanged = onNameChanged,
-        onAddressChanged = onAddressChanged,
-        isValidAddress = isValidAddress,
-        onNetworkKeyClick = onNetworkKeyClicked,
-        onAuthenticationMethodSelected = onAuthenticationMethodSelected,
-        authenticate = authenticate,
-        onProvisioningComplete = onProvisioningComplete,
-        onProvisioningFailed = onProvisioningFailed,
-        disconnect = disconnect,
-        onScanResultSelected = onScanResultSelected
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalUuidApi::class)
-@Composable
-private fun ProvisionerContent(
-    uiState: ProvisioningScreenUiState,
-    beginProvisioning: (shouldReconfigure: Boolean) -> Unit,
-    onNameChanged: (String) -> Unit,
-    onAddressChanged: (Address) -> Unit,
-    isValidAddress: (Address) -> Boolean,
-    onNetworkKeyClick: (NetworkKey) -> Unit,
     onAuthenticationMethodSelected: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
     onProvisioningComplete: (Uuid) -> Unit,
@@ -256,7 +214,7 @@ private fun ProvisionerContent(
                     onNameChanged = onNameChanged,
                     onAddressChanged = onAddressChanged,
                     isValidAddress = isValidAddress,
-                    onNetworkKeyClick = onNetworkKeyClick,
+                    onNetworkKeyClicked = onNetworkKeyClicked,
                     onAuthenticationMethodSelected = onAuthenticationMethodSelected,
                     authenticate = authenticate,
                     onProvisioningComplete = onProvisioningComplete,
@@ -280,7 +238,7 @@ private fun ProvisioningContent(
     onNameChanged: (String) -> Unit,
     onAddressChanged: (Address) -> Unit,
     isValidAddress: (Address) -> Boolean,
-    onNetworkKeyClick: (NetworkKey) -> Unit,
+    onNetworkKeyClicked: (NetworkKey) -> Unit,
     onAuthenticationMethodSelected: (AuthenticationMethod) -> Unit,
     authenticate: (AuthAction, String) -> Unit,
     onProvisioningComplete: (Uuid) -> Unit,
@@ -320,7 +278,7 @@ private fun ProvisioningContent(
             onNameChanged = onNameChanged,
             onAddressChanged = onAddressChanged,
             isValidAddress = isValidAddress,
-            onNetworkKeyClicked = onNetworkKeyClick,
+            onNetworkKeyClicked = onNetworkKeyClicked,
             authenticate = authenticate,
             onProvisioningComplete = onProvisioningComplete,
             onProvisioningFailed = onProvisioningFailed,
