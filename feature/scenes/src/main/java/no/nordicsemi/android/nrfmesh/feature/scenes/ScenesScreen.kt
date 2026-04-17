@@ -142,12 +142,6 @@ internal fun ScenesScreen(
             },
             expanded = true
         )
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(16.dp)
-        )
     }
 }
 

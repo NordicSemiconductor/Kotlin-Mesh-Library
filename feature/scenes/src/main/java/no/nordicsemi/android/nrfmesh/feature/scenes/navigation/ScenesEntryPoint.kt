@@ -57,5 +57,5 @@ fun EntryProviderScope<NavKey>.scenesEntry(appState: AppState, navigator: Naviga
             remove = viewModel::remove
         )
     }
-    sceneEntry(appState = appState)
+    sceneEntry()
 }
