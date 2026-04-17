@@ -35,6 +35,7 @@ import no.nordicsemi.kotlin.mesh.core.model.AllNodes
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
 import no.nordicsemi.kotlin.mesh.core.model.Element
 import no.nordicsemi.kotlin.mesh.core.model.MeshAddress
+import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import no.nordicsemi.kotlin.mesh.core.model.NetworkKey
 import no.nordicsemi.kotlin.mesh.core.model.PrimaryGroupAddress
@@ -142,11 +143,12 @@ internal class AcknowledgementContext(
  * @property networkManager  Network manager.
  */
 internal class AccessLayer(private val networkManager: NetworkManager) : AutoCloseable {
+    private val network: MeshNetwork
+        get() = networkManager.meshNetwork
 
-    val mutex = Mutex()
-    val network = networkManager.meshNetwork
-    val scope = networkManager.scope
-    val logger: Logger?
+    private val mutex = Mutex()
+    private val scope = networkManager.scope
+    private val logger: Logger?
         get() = networkManager.logger
 
     private var transactions = mutableMapOf<Int, Transaction>()
@@ -154,10 +156,6 @@ internal class AccessLayer(private val networkManager: NetworkManager) : AutoClo
     internal val contexts: List<AcknowledgementContext>
         get() = reliableMessageContexts
     private var publishers = mutableMapOf<Model, TimerTask>()
-
-    init {
-        reinitializePublishers()
-    }
 
     private fun finalize() {
         transactions.clear()

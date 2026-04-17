@@ -3,7 +3,6 @@
 package no.nordicsemi.kotlin.mesh.core.layers.network
 
 import kotlinx.coroutines.sync.Mutex
-import kotlin.time.Clock
 import no.nordicsemi.kotlin.mesh.bearer.BearerError
 import no.nordicsemi.kotlin.mesh.bearer.PduType
 import no.nordicsemi.kotlin.mesh.bearer.gatt.GattBearer
@@ -29,6 +28,7 @@ import no.nordicsemi.kotlin.mesh.core.model.maxUnicastAddress
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import kotlin.concurrent.timer
+import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -40,7 +40,6 @@ import kotlin.uuid.ExperimentalUuidApi
  * @constructor Constructs the network layer.
  */
 internal class NetworkLayer(private val networkManager: NetworkManager) {
-
     private val meshNetwork: MeshNetwork
         get() = networkManager.meshNetwork
     private val logger: Logger?

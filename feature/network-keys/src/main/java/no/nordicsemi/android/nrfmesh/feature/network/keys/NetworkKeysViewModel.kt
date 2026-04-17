@@ -4,11 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.models.NetworkKeyData
@@ -23,12 +23,7 @@ class NetworkKeysViewModel @Inject internal constructor(
 
     private lateinit var network: MeshNetwork
     private val _uiState = MutableStateFlow(NetworkKeysScreenUiState())
-    val uiState: StateFlow<NetworkKeysScreenUiState> = _uiState
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = NetworkKeysScreenUiState()
-        )
+    val uiState: StateFlow<NetworkKeysScreenUiState> = _uiState.asStateFlow()
 
     init {
         observeNetwork()
@@ -39,9 +34,10 @@ class NetworkKeysViewModel @Inject internal constructor(
         super.onCleared()
     }
 
-    private fun observeNetwork() {
-        repository.network.onEach { network ->
-            this.network = network
+    private fun observeNetwork() = repository.network
+        .filterNotNull()
+        .onEach { meshNetwork ->
+            network = meshNetwork
             _uiState.update { state ->
                 state.copy(
                     keys = network.networkKeys
@@ -50,8 +46,8 @@ class NetworkKeysViewModel @Inject internal constructor(
                         .filter { it !in state.keysToBeRemoved },
                 )
             }
-        }.launchIn(scope = viewModelScope)
-    }
+        }
+        .launchIn(viewModelScope)
 
     /**
      * Adds a network key to the network.

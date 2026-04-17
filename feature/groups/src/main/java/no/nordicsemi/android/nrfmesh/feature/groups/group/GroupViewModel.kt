@@ -7,9 +7,11 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.isSupportedGroupItem
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
@@ -28,18 +30,14 @@ internal class GroupViewModel @AssistedInject internal constructor(
 ) : ViewModel() {
     private var group: Group? = null
     private val _uiState = MutableStateFlow(GroupScreenUiState())
-    val uiState: StateFlow<GroupScreenUiState> = _uiState
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = GroupScreenUiState()
-        )
+    val uiState: StateFlow<GroupScreenUiState> = _uiState.asStateFlow()
 
     private lateinit var network: MeshNetwork
 
     init {
-        viewModelScope.launch {
-            repository.network.collect { network ->
+        repository.network
+            .filterNotNull()
+            .onEach { network ->
                 network.group(address = address.toUShort())?.let { group ->
                     this@GroupViewModel.group = group
                     val models = mutableMapOf<ModelId, List<Model>>()
@@ -68,7 +66,7 @@ internal class GroupViewModel @AssistedInject internal constructor(
                     this@GroupViewModel.network = network
                 }
             }
-        }
+            .launchIn(scope = viewModelScope)
     }
 
     internal fun save() {

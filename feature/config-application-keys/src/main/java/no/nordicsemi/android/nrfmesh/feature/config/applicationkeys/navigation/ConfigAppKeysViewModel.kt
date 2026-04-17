@@ -7,11 +7,11 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Completed
@@ -46,20 +46,17 @@ internal class ConfigAppKeysViewModel @AssistedInject internal constructor(
     private val nodeUuid = Uuid.parse(uuidString = uuid)
 
     private val _uiState = MutableStateFlow(ConfigAppKeysUiState())
-    val uiState: StateFlow<ConfigAppKeysUiState> = _uiState
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ConfigAppKeysUiState()
-        )
+    val uiState: StateFlow<ConfigAppKeysUiState> = _uiState.asStateFlow()
 
     init {
         observeNetworkChanges()
     }
 
-    private fun observeNetworkChanges() {
-        repository.network.onEach {
-            this@ConfigAppKeysViewModel.selectedNode = it.node(uuid = nodeUuid) ?: return@onEach
+    private fun observeNetworkChanges() = repository.network
+        .filterNotNull()
+        .onEach { network ->
+            this@ConfigAppKeysViewModel.selectedNode =
+                network.node(uuid = nodeUuid) ?: return@onEach
             _uiState.update { state ->
                 state.copy(
                     isLocalProvisionerNode = selectedNode.isLocalProvisioner,
@@ -67,9 +64,9 @@ internal class ConfigAppKeysViewModel @AssistedInject internal constructor(
                     availableAppKeys = selectedNode.unknownApplicationKeys()
                 )
             }
-            meshNetwork = it // update the local network instance
-        }.launchIn(scope = viewModelScope)
-    }
+            meshNetwork = network // update the local network instance
+        }
+        .launchIn(scope = viewModelScope)
 
     /**
      * Called when the user pulls down to refresh the node details.
@@ -180,14 +177,10 @@ internal class ConfigAppKeysViewModel @AssistedInject internal constructor(
         _uiState.value = _uiState.value.copy(messageState = NotStarted)
     }
 
-    internal fun addApplicationKey() = repository.addApplicationKey(
-        boundNetworkKey = meshNetwork.networkKeys.first()
-    )
-
-    fun save() {
-        viewModelScope.launch {
-            repository.save()
-        }
+    internal fun addApplicationKey() = viewModelScope.launch {
+        repository.addApplicationKey(
+            boundNetworkKey = meshNetwork.networkKeys.first()
+        )
     }
 
     @AssistedFactory

@@ -5,10 +5,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -57,6 +60,7 @@ import no.nordicsemi.kotlin.mesh.core.model.serialization.config.NetworkConfigur
 import no.nordicsemi.kotlin.mesh.logger.LogCategory
 import no.nordicsemi.kotlin.mesh.logger.Logger
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -68,6 +72,7 @@ import kotlin.uuid.Uuid
  * @param secureProperties            Custom storage option allowing users to save the sequence
  *                                    number.
  * @param scope                       The scope in which the mesh network will be created.
+ * @property meshNetwork              The state flow with the active mesh network.
  * @property meshBearer               Mesh bearer is responsible for sending and receiving mesh
  *                                    messages.
  * @property logger                   The logger is responsible for logging mesh messages.
@@ -88,11 +93,11 @@ class MeshNetworkManager(
 ) : Publisher {
     internal val scope = CoroutineScope(context = SupervisorJob() + ioDispatcher)
     private val mutex by lazy { Mutex() }
-    private val _meshNetwork = MutableSharedFlow<MeshNetwork>(replay = 1, extraBufferCapacity = 10)
-    val meshNetwork = _meshNetwork.asSharedFlow()
     var networkParameters = NetworkParameters()
+    /** Teh currently loaded mesh network. */
     internal var network: MeshNetwork? = null
-        private set
+    private val _meshNetwork = MutableStateFlow<MeshNetwork?>(null)
+    val meshNetwork = _meshNetwork.asStateFlow()
 
     internal var observeNetworkManagerEvents: Job? = null
     internal var observeMeshMessages: Job? = null
@@ -119,7 +124,7 @@ class MeshNetworkManager(
         }
     val proxyFilter: ProxyFilter = ProxyFilter(scope = scope, manager = this)
 
-    val _attentionTimer = MutableSharedFlow<HealthAttentionTimer>()
+    private val _attentionTimer = MutableSharedFlow<HealthAttentionTimer>()
     val attentionTimer = _attentionTimer.asSharedFlow()
 
     var localElements: List<Element>
@@ -177,24 +182,27 @@ class MeshNetworkManager(
         .load()
         .takeIf { it.isNotEmpty() }
         ?.let {
-            val meshNetwork = deserialize(it)
-                // Load the IvIndex from the secure properties storage.
+            network = deserialize(it)
+                // Load the IvIndex from the secure properties' storage.
                 .apply { ivIndex = secureProperties.ivIndex(uuid = uuid) }
-            this@MeshNetworkManager.network = meshNetwork
-            _meshNetwork.emit(value = meshNetwork)
             networkManager = NetworkManager(manager = this)
             proxyFilter.onNewNetworkCreated()
+            _meshNetwork.update { network }
             true
         } == true
 
     /**
      * Saves the network in the local storage provided by the user.
      */
+    @OptIn(ExperimentalTime::class, ExperimentalUuidApi::class)
     suspend fun save() {
-        export()?.also {
+        _meshNetwork.update {
+            network?.copy(
+                _timestamp = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+            )
+        }
+        export()?.let {
             mutex.withLock { storage.save(network = it) }
-            this@MeshNetworkManager.network
-                ?.let { network -> _meshNetwork.emit(value = network) }
         }
     }
 
@@ -248,42 +256,41 @@ class MeshNetworkManager(
             }
         }
 
-        return MeshNetwork(uuid = uuid, _name = name).also {
+        return MeshNetwork(uuid = uuid, _name = name).also { network ->
             if (networkKeys.isNotEmpty()) {
                 networkKeys.forEachIndexed { index, key ->
-                    it.add(
+                    network.add(
                         name = if (index == 0) "Primary Network Key" else "Network Key $index",
                         key = key
                     )
                 }
             } else {
-                it.add(name = "Primary Network Key", index = 0u)
+                network.add(name = "Primary Network Key", index = 0u)
             }
-            it.add(provisioner)
-            network = it
+            network.add(provisioner)
+            this.network = network
             networkManager = NetworkManager(this)
             // Store the IvIndex of the newly created network.
             secureProperties.storeLocalProvisioner(
                 uuid = uuid,
-                localProvisionerUuid = it.provisioners.first().uuid
+                localProvisionerUuid = network.provisioners.first().uuid
             )
             secureProperties.storeIvIndex(
-                uuid = it.uuid,
-                ivIndex = it.ivIndex
+                uuid = network.uuid,
+                ivIndex = network.ivIndex
             )
-            _meshNetwork.emit(it)
+            _meshNetwork.update { network }
         }
     }
 
     /**
-     * Forgets the currently loaded mesh network and saves the state
+     * Forgets the currently loaded mesh network and saves the state.
      */
     suspend fun clear() {
-        network = null
         networkManager = null
-        mutex.withLock {
-            storage.save(network = byteArrayOf())
-        }
+        network = null
+        _meshNetwork.update { null }
+        mutex.withLock { storage.save(network = byteArrayOf()) }
     }
 
     /**
@@ -296,11 +303,11 @@ class MeshNetworkManager(
     @Throws(ImportError::class)
     suspend fun import(array: ByteArray) = runCatching {
         deserialize(array)
-            .also {
-                network = it
+            .also { network ->
+                this.network = network
                 networkManager = NetworkManager(this)
                 proxyFilter.onNewNetworkCreated()
-                _meshNetwork.emit(it)
+                _meshNetwork.update { network }
             }
     }.getOrElse {
         if (it is ImportError) throw it
@@ -314,12 +321,10 @@ class MeshNetworkManager(
      * @param configuration Specifies if the network should be fully exported or partially.
      * @return Bytearray containing the Mesh network configuration.
      */
-    fun export(configuration: NetworkConfiguration = NetworkConfiguration.Full) = network?.let {
-        serialize(
-            network = it,
-            configuration = configuration
-        ).toString().toByteArray()
-    }
+    fun export(configuration: NetworkConfiguration = NetworkConfiguration.Full) = network
+        ?.let { serialize(network = it, configuration = configuration) }
+        ?.toString()
+        ?.toByteArray()
 
     override fun publish(message: UnacknowledgedMeshMessage, model: Model) {
         networkManager?.let {
@@ -1035,7 +1040,7 @@ class MeshNetworkManager(
                 }
                 throw CannotDelete()
             }
-            logger?.e(LogCategory.FOUNDATION_MODEL) {
+            logger?.e(LogCategory.PROXY) {
                 "No GATT Proxy connected or no common Network Keys"
             }
             throw CannotRelay()

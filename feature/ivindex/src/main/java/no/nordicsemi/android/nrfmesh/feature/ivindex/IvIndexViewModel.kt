@@ -6,17 +6,16 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.storage.MeshSecurePropertiesStorage
 import no.nordicsemi.kotlin.mesh.core.model.IvIndex
 import no.nordicsemi.kotlin.mesh.core.model.MeshNetwork
-import javax.inject.Inject
 import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
 
@@ -25,15 +24,9 @@ class IvIndexViewModel @AssistedInject constructor(
     private val repository: CoreDataRepository,
     private val storage: MeshSecurePropertiesStorage,
 ) : ViewModel() {
-
     private lateinit var network: MeshNetwork
     private val _uiState = MutableStateFlow(IvIndexScreenUiState())
-    internal val uiState: StateFlow<IvIndexScreenUiState> = _uiState
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = IvIndexScreenUiState()
-        )
+    internal val uiState: StateFlow<IvIndexScreenUiState> = _uiState.asStateFlow()
 
     init {
         observeNetworkState()
@@ -42,16 +35,17 @@ class IvIndexViewModel @AssistedInject constructor(
     /**
      * Observes the network state and updates the UI state with the current IV index.
      */
-    private fun observeNetworkState() {
-        repository.network.onEach {
+    private fun observeNetworkState() = repository.network
+        .filterNotNull()
+        .onEach {
             network = it
             _uiState.value = IvIndexScreenUiState(
                 ivIndex = it.ivIndex,
                 testMode = repository.ivUpdateTestMode,
                 isIvIndexChangeAllowed = it.isIvIndexUpdateAllowed()
             )
-        }.launchIn(viewModelScope)
-    }
+        }
+        .launchIn(viewModelScope)
 
     /**
      * Increases the IV index by 1 if the network is empty.

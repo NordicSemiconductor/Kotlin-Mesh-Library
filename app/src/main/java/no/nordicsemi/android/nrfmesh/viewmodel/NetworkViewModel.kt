@@ -6,11 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
@@ -32,41 +32,34 @@ class NetworkViewModel @Inject constructor(
     private val repository: CoreDataRepository,
     private val storage: MeshSecurePropertiesStorage,
 ) : ViewModel() {
-    private var meshNetwork: MeshNetwork? = null
+    private lateinit var meshNetwork: MeshNetwork
     private val _uiState = MutableStateFlow(NetworkScreenUiState())
-    internal val uiState: StateFlow<NetworkScreenUiState> = _uiState
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = NetworkScreenUiState()
-        )
+    internal val uiState: StateFlow<NetworkScreenUiState> = _uiState.asStateFlow()
 
     init {
         loadNetwork()
         observeNetworkChanges()
     }
 
-    private fun observeNetworkChanges() {
-        // Observes the mesh network for any changes i.e. network reset etc.
-        repository.network
-            .onEach { network ->
-                _uiState.update { state ->
-                    state.copy(
-                        networkState = MeshNetworkState.Success(network = network),
-                        counter = state.counter + 1
-                    )
-                }
-                promptProvisionerSelection(network)
-                meshNetwork = network
+    // Observes the mesh network for any changes i.e. network reset etc.
+    private fun observeNetworkChanges() = repository.network
+        .filterNotNull()
+        .onEach { network ->
+            _uiState.update { state ->
+                state.copy(
+                    networkState = MeshNetworkState.Success(network = network),
+                    counter = state.counter + 1
+                )
             }
-            .launchIn(scope = viewModelScope)
-    }
+            promptProvisionerSelection(network)
+            meshNetwork = network
+        }
+        .launchIn(scope = viewModelScope)
+
 
     override fun onCleared() {
         super.onCleared()
-        viewModelScope.launch {
-            repository.disconnect()
-        }
+        repository.disconnect()
     }
 
     internal fun loadNetwork() {
@@ -77,7 +70,7 @@ class NetworkViewModel @Inject constructor(
                     state.copy(networkState = MeshNetworkState.NoNetwork)
                 }
             } else {
-                repository.startAutomaticConnectivity(meshNetwork)
+                repository.onBluetoothEnabled()
             }
         }
     }
@@ -91,14 +84,12 @@ class NetworkViewModel @Inject constructor(
     internal fun onProvisionerSelected(provisioner: Provisioner) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(shouldSelectProvisioner = false)
-            meshNetwork?.let { meshNetwork ->
-                meshNetwork.move(provisioner = provisioner, to = 0)
-                storage.storeLocalProvisioner(
-                    uuid = meshNetwork.uuid,
-                    localProvisionerUuid = provisioner.uuid
-                )
-                repository.save()
-            }
+            meshNetwork.move(provisioner = provisioner, to = 0)
+            storage.storeLocalProvisioner(
+                uuid = meshNetwork.uuid,
+                localProvisionerUuid = provisioner.uuid
+            )
+            repository.save()
         }
     }
 

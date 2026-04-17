@@ -37,7 +37,6 @@ import no.nordicsemi.kotlin.mesh.core.messages.ConfigStatusMessage
 import no.nordicsemi.kotlin.mesh.core.messages.MeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.Model
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
 @Composable
@@ -52,7 +51,6 @@ internal fun ModelScreen(
     resetMessageState: () -> Unit,
     onAddGroupClicked: () -> Unit,
     navigateToGroups: () -> Unit,
-    navigateToConfigApplicationKeys: (Uuid) -> Unit,
 ) {
     // When entering this screen the TextFields automatically gets focused causing the keyboard
     // to show up. This is a known issue and the workaround is to make the column focusable to
@@ -92,7 +90,6 @@ internal fun ModelScreen(
                     BoundApplicationKeys(
                         model = model,
                         messageState = messageState,
-                        navigateToConfigApplicationKeys = navigateToConfigApplicationKeys,
                         send = send
                     )
                 }

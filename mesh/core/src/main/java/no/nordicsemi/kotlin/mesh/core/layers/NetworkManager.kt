@@ -59,7 +59,6 @@ import kotlin.time.DurationUnit
 internal class NetworkManager internal constructor(
     private val manager: MeshNetworkManager,
 ) : NetworkManagerEventTransmitter {
-
     internal val scope: CoroutineScope = manager.scope
     internal var proxy: ProxyFilterEventHandler = manager.proxyFilter
 
@@ -359,7 +358,7 @@ internal class NetworkManager internal constructor(
             destination = destination,
             ttl = initialTtl,
             applicationKey = applicationKey,
-            retransmit = true
+            retransmit = false
         ).also {
             mutex.withLock { outgoingMessages.remove(destination) }
         }

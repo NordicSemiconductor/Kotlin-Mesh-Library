@@ -2,19 +2,17 @@ package no.nordicsemi.android.nrfmesh.feature.export
 
 import android.content.ContentResolver
 import android.net.Uri
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
@@ -33,29 +31,25 @@ import kotlin.uuid.ExperimentalUuidApi
 class ExportViewModel @Inject internal constructor(
     private val repository: CoreDataRepository,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(ExportScreenUiState())
-    val uiState: StateFlow<ExportScreenUiState> = _uiState.stateIn(
-        scope = viewModelScope,
-        started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
-        initialValue = ExportScreenUiState()
-    )
+    val uiState: StateFlow<ExportScreenUiState> = _uiState.asStateFlow()
 
     init {
-        observeNetworkChanges()
+        observeNetwork()
     }
 
-    private fun observeNetworkChanges() {
-        repository.network.onEach { network ->
+    private fun observeNetwork() = repository.network
+        .filterNotNull()
+        .onEach { meshNetwork ->
             _uiState.update { state ->
                 state.copy(
-                    networkName = network.name,
-                    provisionerItemStates = network.provisioners.map { ProvisionerItemState(it) },
-                    networkKeyItemStates = network.networkKeys.map { NetworkKeyItemState(it) }
+                    networkName = meshNetwork.name,
+                    provisionerItemStates = meshNetwork.provisioners.map { ProvisionerItemState(it) },
+                    networkKeyItemStates = meshNetwork.networkKeys.map { NetworkKeyItemState(it) }
                 )
             }
-        }.launchIn(scope = viewModelScope)
-    }
+        }
+        .launchIn(viewModelScope)
 
     /**
      * Invoked when export option is toggled.
@@ -106,7 +100,7 @@ class ExportViewModel @Inject internal constructor(
     }
 
     /**
-     * Updates the ui state when when device keys check box is toggled.
+     * Updates the ui state when device keys check box is toggled.
      *
      * @param isToggled True if toggled and false otherwise.
      */
@@ -136,7 +130,7 @@ class ExportViewModel @Inject internal constructor(
                 state.copy(exportState = ExportState.Error(throwable))
             }
         }) {
-            repository.network.collectLatest { network ->
+            repository.network.filterNotNull().collectLatest { network ->
                 uiState.value.run {
                     val data = repository.exportNetwork(
                         configuration = when (exportOption) {

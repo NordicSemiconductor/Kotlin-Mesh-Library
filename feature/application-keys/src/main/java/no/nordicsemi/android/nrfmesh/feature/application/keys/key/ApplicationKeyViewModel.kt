@@ -7,11 +7,11 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.kotlin.mesh.core.model.ApplicationKey
@@ -27,20 +27,16 @@ internal class ApplicationKeyViewModel @AssistedInject internal constructor(
     private lateinit var network: MeshNetwork
 
     private val _uiState = MutableStateFlow(ApplicationKeyScreenUiState())
-    internal val uiState: StateFlow<ApplicationKeyScreenUiState> = _uiState
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ApplicationKeyScreenUiState()
-        )
+    internal val uiState: StateFlow<ApplicationKeyScreenUiState> = _uiState.asStateFlow()
 
     init {
         observeNetwork()
     }
 
     private fun observeNetwork() = repository.network
-        .onEach { network ->
-            this.network = network
+        .filterNotNull()
+        .onEach { meshNetwork ->
+            network = meshNetwork
             val keyState = network.applicationKey(index = keyIndex)
                 ?.let {  AppKeyState.Success(key = it) }
                 ?: AppKeyState.Error(throwable = IllegalStateException("Application Key not found."))
@@ -48,7 +44,7 @@ internal class ApplicationKeyViewModel @AssistedInject internal constructor(
                 state.copy(keyState = keyState, networkKeys = network.networkKeys)
             }
         }
-        .launchIn(scope = viewModelScope)
+        .launchIn(viewModelScope)
 
     /**
      * Saves the network.

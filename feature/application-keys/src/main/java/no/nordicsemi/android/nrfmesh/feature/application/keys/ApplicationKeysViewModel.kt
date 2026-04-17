@@ -4,11 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
 import no.nordicsemi.android.nrfmesh.core.data.models.ApplicationKeyData
@@ -25,12 +25,7 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
     private lateinit var network: MeshNetwork
 
     private val _uiState = MutableStateFlow(ApplicationKeysScreenUiState())
-    val uiState: StateFlow<ApplicationKeysScreenUiState> = _uiState
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ApplicationKeysScreenUiState()
-        )
+    val uiState: StateFlow<ApplicationKeysScreenUiState> = _uiState.asStateFlow()
 
     init {
         observeNetwork()
@@ -41,9 +36,10 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
         super.onCleared()
     }
 
-    private fun observeNetwork() {
-        repository.network.onEach { network ->
-            this.network = network
+    private fun observeNetwork() = repository.network
+        .filterNotNull()
+        .onEach { meshNetwork ->
+            network = meshNetwork
             _uiState.update { state ->
                 state.copy(
                     keys = network.applicationKeys
@@ -52,8 +48,8 @@ internal class ApplicationKeysViewModel @Inject internal constructor(
                         .filter { it !in state.keysToBeRemoved },
                 )
             }
-        }.launchIn(scope = viewModelScope)
-    }
+        }
+        .launchIn(viewModelScope)
 
     /**
      * Adds an application key to the network.
