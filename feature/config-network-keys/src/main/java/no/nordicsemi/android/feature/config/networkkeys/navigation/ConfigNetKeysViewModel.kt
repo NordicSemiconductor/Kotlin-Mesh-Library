@@ -7,12 +7,11 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.common.Completed
@@ -51,12 +50,7 @@ internal class ConfigNetKeysViewModel @AssistedInject internal constructor(
     private val nodeUuid = Uuid.parse(uuidString = uuid)
 
     private val _uiState = MutableStateFlow(ConfigNetKeysScreenUi())
-    val uiState: StateFlow<ConfigNetKeysScreenUi> = _uiState
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ConfigNetKeysScreenUi()
-        )
+    val uiState: StateFlow<ConfigNetKeysScreenUi> = _uiState.asStateFlow()
 
     init {
         observeNetworkChanges()

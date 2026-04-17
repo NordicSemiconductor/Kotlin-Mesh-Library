@@ -7,12 +7,11 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.nrfmesh.core.data.CoreDataRepository
@@ -35,12 +34,7 @@ internal class ProvisionerViewModel
     private lateinit var network: MeshNetwork
     private lateinit var provisioner: Provisioner
     private val _uiState = MutableStateFlow(ProvisionerScreenUiState())
-    internal val uiState: StateFlow<ProvisionerScreenUiState> = _uiState
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ProvisionerScreenUiState()
-        )
+    internal val uiState: StateFlow<ProvisionerScreenUiState> = _uiState.asStateFlow()
 
     init {
         observeNetwork()
