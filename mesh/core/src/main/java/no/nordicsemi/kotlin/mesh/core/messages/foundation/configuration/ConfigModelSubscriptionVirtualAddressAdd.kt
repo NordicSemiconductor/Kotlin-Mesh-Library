@@ -15,7 +15,7 @@ import no.nordicsemi.kotlin.mesh.core.model.SubscriptionAddress
 import no.nordicsemi.kotlin.mesh.core.model.UnicastAddress
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.VirtualAddress
-import java.nio.ByteOrder
+import no.nordicsemi.kotlin.data.ByteOrder
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 

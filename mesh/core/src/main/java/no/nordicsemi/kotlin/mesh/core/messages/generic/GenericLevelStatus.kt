@@ -8,7 +8,7 @@ import no.nordicsemi.kotlin.mesh.core.messages.MeshResponse
 import no.nordicsemi.kotlin.mesh.core.messages.TransitionStatusMessage
 import no.nordicsemi.kotlin.mesh.core.messages.UnacknowledgedMeshMessage
 import no.nordicsemi.kotlin.mesh.core.model.TransitionTime
-import java.nio.ByteOrder
+import no.nordicsemi.kotlin.data.ByteOrder
 
 /**
  * This message is a response to a [GenericLevelGet] and [GenericLevelSet] that contains the current

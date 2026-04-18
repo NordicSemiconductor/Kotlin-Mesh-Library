@@ -17,7 +17,7 @@ import no.nordicsemi.kotlin.mesh.core.layers.foundation.RemoteProvisioningClient
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.SarConfigurationClientHandler
 import no.nordicsemi.kotlin.mesh.core.layers.foundation.SceneClientHandler
 import no.nordicsemi.kotlin.mesh.core.model.serialization.LocationAsStringSerializer
-import java.nio.ByteOrder
+import no.nordicsemi.kotlin.data.ByteOrder
 
 /**
  * Element represents a mesh element that is defined as an addressable entity within a mesh node.

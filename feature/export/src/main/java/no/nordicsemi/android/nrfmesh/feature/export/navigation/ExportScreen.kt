@@ -2,7 +2,7 @@ package no.nordicsemi.android.nrfmesh.feature.export.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import no.nordicsemi.android.nrfmesh.feature.export.ExportScreenContent
 import no.nordicsemi.android.nrfmesh.feature.export.ExportViewModel

@@ -1,14 +1,15 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
-import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.test.fail
 import kotlin.time.ExperimentalTime
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -16,10 +17,18 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class)
 class MeshNetworkTest {
 
+    private fun assertDoesNotThrow(block: () -> Unit) {
+        try {
+            block.invoke()
+        } catch (t: Throwable) {
+            fail("Expected doesn't throw, but got: ${t.stackTraceToString()}")
+        }
+    }
+
     private val networkManager = MeshNetworkManager(
         storage = TestStorage(),
         secureProperties = TestPropertiesStorage(),
-        ioDispatcher = TODO()
+        ioDispatcher = StandardTestDispatcher()
     )
     private lateinit var meshNetwork: MeshNetwork
     private val group = Group("Test Group", GroupAddress(0xD000u))

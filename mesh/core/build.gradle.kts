@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.nordic.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.nordic.nexus.jvm)
 }
@@ -20,11 +20,12 @@ dependencies {
     api(project(":mesh:bearer"))
     api(project(":mesh:crypto"))
     api(project(":mesh:logger"))
-    implementation(nordic.kotlin.data)
+    implementation(nordic.kotlin.data.kmp)
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.datetime)
     // Dependencies used for testing
     testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

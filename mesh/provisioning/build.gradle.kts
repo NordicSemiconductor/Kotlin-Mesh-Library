@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.nordic.kotlin.jvm)
     alias(libs.plugins.nordic.nexus.jvm)
 }
 
@@ -21,7 +21,7 @@ dependencies {
     api(project(":mesh:bearer-provisioning"))
 
     implementation(libs.kotlinx.coroutines.core)
-    implementation(nordic.kotlin.data)
+    implementation(nordic.kotlin.data.kmp)
     // Dependencies used for testing
     implementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotlin.junit)

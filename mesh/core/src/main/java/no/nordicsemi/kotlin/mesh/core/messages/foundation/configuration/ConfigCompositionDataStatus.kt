@@ -18,7 +18,7 @@ import no.nordicsemi.kotlin.mesh.core.model.SigModelId
 import no.nordicsemi.kotlin.mesh.core.model.VendorModelId
 import no.nordicsemi.kotlin.mesh.core.model.composition
 import no.nordicsemi.kotlin.mesh.core.util.CompanyIdentifier
-import java.nio.ByteOrder
+import no.nordicsemi.kotlin.data.ByteOrder
 
 /**
  * Base interface for a Composition Data Page.
