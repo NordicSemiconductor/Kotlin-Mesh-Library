@@ -9,7 +9,7 @@ android {
 }
 
 dependencies {
-    implementation(nordic.kotlin.data)
+    implementation(nordic.kotlin.data.kmp)
 
     implementation(project(":core:common"))
     implementation(project(":core:data"))

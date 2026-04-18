@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.nordic.kotlin.jvm)
     alias(libs.plugins.nordic.nexus.jvm)
 }
 
@@ -17,7 +17,7 @@ nordicNexusPublishing {
 
 dependencies {
     api(project(":mesh:logger"))
-    implementation(nordic.kotlin.data)
+    implementation(nordic.kotlin.data.kmp)
     implementation(libs.kotlinx.coroutines.core)
     // Dependencies used for testing
     testImplementation(libs.kotlin.junit)

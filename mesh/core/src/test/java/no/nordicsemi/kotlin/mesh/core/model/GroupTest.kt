@@ -1,6 +1,8 @@
 package no.nordicsemi.kotlin.mesh.core.model
 
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.TestScope
 import no.nordicsemi.kotlin.mesh.core.MeshNetworkManager
 import kotlin.test.Test
@@ -11,7 +13,7 @@ class GroupTest {
     private val networkManager = MeshNetworkManager(
         storage = TestStorage(),
         secureProperties = TestPropertiesStorage(),
-        scope = TestScope()
+        ioDispatcher = StandardTestDispatcher()
     )
     private lateinit var meshNetwork: MeshNetwork
 

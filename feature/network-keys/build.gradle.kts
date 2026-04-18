@@ -10,7 +10,7 @@ android {
 }
 
 dependencies {
-    implementation(nordic.kotlin.data)
+    implementation(nordic.kotlin.data.kmp)
     implementation(libs.kotlinx.datetime)
 
     testImplementation(libs.junit4)

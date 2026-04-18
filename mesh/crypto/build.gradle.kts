@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.nordic.nexus.jvm)
+    alias(libs.plugins.nordic.kotlin.jvm)
 }
 
 group = "no.nordicsemi.kotlin.mesh"
@@ -16,7 +16,7 @@ nordicNexusPublishing {
 }
 
 dependencies {
-    implementation(nordic.kotlin.data)
+    implementation(nordic.kotlin.data.kmp)
     implementation("org.bouncycastle:bcprov-jdk18on:1.83")
     testImplementation(libs.kotlin.junit)
 }

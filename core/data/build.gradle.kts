@@ -8,9 +8,6 @@ plugins {
 
 android {
     namespace = "no.nordicsemi.android.nrfmesh.core.data"
-    kotlinOptions {
-        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
-    }
 }
 
 wire {
@@ -19,7 +16,7 @@ wire {
 
 dependencies {
     implementation(nordic.permissions.ble)
-    implementation(nordic.kotlin.data)
+    implementation(nordic.kotlin.data.kmp)
     implementation(nordic.blek.client.android)
 
     implementation("androidx.datastore:datastore-core:1.2.1")

@@ -11,7 +11,7 @@ android {
 
 dependencies {
     implementation(nordic.theme)
-    implementation(nordic.kotlin.data)
+    implementation(nordic.kotlin.data.kmp)
     implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit4)

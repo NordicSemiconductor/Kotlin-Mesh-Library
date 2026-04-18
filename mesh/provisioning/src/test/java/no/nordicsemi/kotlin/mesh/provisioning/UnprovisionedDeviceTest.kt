@@ -4,10 +4,11 @@ import no.nordicsemi.kotlin.data.toHexString
 import no.nordicsemi.kotlin.mesh.core.oob.OobInformation
 import no.nordicsemi.kotlin.mesh.core.util.Utils
 import org.junit.Test
+import kotlin.uuid.ExperimentalUuidApi
 
 class UnprovisionedDeviceTest {
 
-    @OptIn(ExperimentalStdlibApi::class)
+    @OptIn(ExperimentalStdlibApi::class, ExperimentalUuidApi::class)
     @Test
     fun testFrom() {
         val expectedDevice = UnprovisionedDevice(
